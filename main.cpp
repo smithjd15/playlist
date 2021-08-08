@@ -27,7 +27,7 @@
 
 #include "unistd.h"
 
-#define VER 1.0
+#define VER 1.1
 
 #define PLS_SECTION "[playlist]"
 #define PLS_VERSION 2
@@ -232,7 +232,11 @@ const Entries ParseM3U(const fs::path &playlist) {
     }
 
     if (!line.empty() && (line.rfind("#", 0) == std::string::npos)) {
-      entry.playlist = playlist;
+      if (fs::is_fifo(playlist)) {
+        entry.playlist = fs::current_path().append(".");
+      } else {
+        entry.playlist = playlist;
+      }
       entry.targetUri = ProcessUri(line);
       entry.track = t;
 
@@ -258,7 +262,7 @@ void ParsePlaylist(const fs::path &playlist, Entries &entries) {
   std::transform(extension.begin(), extension.end(), extension.begin(),
                  [](const char &c) { return std::tolower(c); });
 
-  if (extension == ".m3u") {
+  if (extension == ".m3u" || fs::is_fifo(playlist)) {
     entries = ParseM3U(playlist);
   } else if (extension == ".pls") {
     entries = ParsePLS(playlist);
