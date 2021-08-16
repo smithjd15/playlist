@@ -27,7 +27,7 @@
 
 #include "unistd.h"
 
-#define VER 1.1
+#define VER 1.2
 
 #define PLS_SECTION "[playlist]"
 #define PLS_VERSION 2
@@ -804,7 +804,7 @@ int main(int argc, char **argv) {
 
     if (Flags[6])
       std::shuffle(entries.begin(), entries.end(),
-                   std::default_random_engine(std::time(nullptr)));
+                   std::default_random_engine());
 
     for (Entries::iterator it = entries.begin(); it != entries.end();) {
       const auto encodeUri = [](const std::string &uri) {
