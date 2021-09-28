@@ -478,7 +478,7 @@ void ShowHelp() {
   std::cout << "Copyright (C) 2021 James D. Smith" << std::endl;
   std::cout << std::endl;
   std::cout << "Usage: playlist [-l|-L|-D|-T|-P all|dupe|net|unfound|unique] "
-               "[-p] [[-C|-I]|[-R|-B path]] [-a target] "
+               "[-p] [[-C|-I]|[-R|-B path]] [-a target] [-r track] "
                "[-e track:ta(rget)|ti(tle)|du(ration)=value] [-d] [-u] [-n] "
                "[-m] [-q] [-v] [-x] [-o outfile.ext] infile..."
             << std::endl;
@@ -499,8 +499,8 @@ void ShowHelp() {
   std::cout << "\t-I Out playlist local targets in file URI scheme (implied -C)"
             << std::endl;
   std::cout << "\t-a Append entry" << std::endl;
-  std::cout << "\t-e Change or remove entry (empty target to remove)"
-            << std::endl;
+  std::cout << "\t-r Remove entry (same as -e track:ta=)" << std::endl;
+  std::cout << "\t-e Change entry" << std::endl;
   std::cout << "\t-d Remove duplicate targets from out playlist" << std::endl;
   std::cout << "\t-u Remove unfound targets from out playlist" << std::endl;
   std::cout << "\t-n Out playlist targets in random order" << std::endl;
@@ -608,7 +608,7 @@ int main(int argc, char **argv) {
   };
 
   int c;
-  while ((c = getopt(argc, argv, "a:B:CdD:e:Il:L:mno:pP:RT:uvxqh")) != -1) {
+  while ((c = getopt(argc, argv, "a:B:CdD:e:Il:L:mno:pP:r:RT:uvxqh")) != -1) {
     switch (c) {
     case 'a':
       addItems.emplace_back(optarg);
@@ -671,6 +671,10 @@ int main(int argc, char **argv) {
       Flags[7] = true;
 
       parseList(optarg);
+
+      break;
+     case 'r':
+      changeItems.emplace_back(std::string(optarg) + ":ta=");
 
       break;
     case 'R':
