@@ -27,7 +27,7 @@
 
 #include "unistd.h"
 
-#define VER 1.2
+#define VER 1.3
 
 #define PLS_SECTION "[playlist]"
 #define PLS_VERSION 2
@@ -490,6 +490,7 @@ void ShowHelp() {
   std::cout << "\t-T LIST Titles and targets" << std::endl;
   std::cout << "\t-P LIST Playlist and targets" << std::endl;
   std::cout << "\t-p Same as -l all" << std::endl;
+  std::cout << std::endl;
   std::cout << "\t-x Preview changes (with -o)" << std::endl;
   std::cout << "\t-o Out playlist file (.m3u, .pls, .xspf)" << std::endl;
   std::cout << "\t-R Out playlist targets relative to out playlist"
@@ -505,6 +506,7 @@ void ShowHelp() {
   std::cout << "\t-u Remove unfound targets from out playlist" << std::endl;
   std::cout << "\t-n Out playlist targets in random order" << std::endl;
   std::cout << "\t-m Minimal out playlist (targets only)" << std::endl;
+  std::cout << std::endl;
   std::cout << "\t-q Quiet (clobber out playlist)" << std::endl;
   std::cout << "\t-v Verbose" << std::endl;
   std::cout << "\t-h This help" << std::endl;
