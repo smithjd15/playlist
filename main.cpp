@@ -478,7 +478,7 @@ void ShowHelp() {
   std::cout << "Copyright (C) 2021 James D. Smith" << std::endl;
   std::cout << std::endl;
   std::cout << "Usage: playlist [-l|-L|-D|-T|-P all|dupe|net|unfound|unique] "
-               "[-p] [[-c|-i]|[-r|-b path]] [-a target] "
+               "[-p] [[-C|-I]|[-R|-B path]] [-a target] "
                "[-e track:ta(rget)|ti(tle)|du(ration)=value] [-d] [-u] [-n] "
                "[-m] [-q] [-v] [-x] [-o outfile.ext] infile..."
             << std::endl;
@@ -492,11 +492,11 @@ void ShowHelp() {
   std::cout << "\t-p Same as -l all" << std::endl;
   std::cout << "\t-x Preview changes (with -o)" << std::endl;
   std::cout << "\t-o Out playlist file (.m3u, .pls, .xspf)" << std::endl;
-  std::cout << "\t-r Out playlist targets relative to out playlist"
+  std::cout << "\t-R Out playlist targets relative to out playlist"
             << std::endl;
-  std::cout << "\t-b Base path for relative targets (implied -r)" << std::endl;
-  std::cout << "\t-c Out playlist targets in canonical paths" << std::endl;
-  std::cout << "\t-i Out playlist local targets in file URI scheme (implied -c)"
+  std::cout << "\t-B Base path for relative targets (implied -R)" << std::endl;
+  std::cout << "\t-C Out playlist targets in canonical paths" << std::endl;
+  std::cout << "\t-I Out playlist local targets in file URI scheme (implied -C)"
             << std::endl;
   std::cout << "\t-a Append entry" << std::endl;
   std::cout << "\t-e Change or remove entry (empty target to remove)"
@@ -608,17 +608,17 @@ int main(int argc, char **argv) {
   };
 
   int c;
-  while ((c = getopt(argc, argv, "a:b:cdD:e:il:L:mno:pP:rT:uvxqh")) != -1) {
+  while ((c = getopt(argc, argv, "a:B:CdD:e:Il:L:mno:pP:RT:uvxqh")) != -1) {
     switch (c) {
     case 'a':
       addItems.emplace_back(optarg);
 
       break;
-    case 'b':
+    case 'B':
       base = fs::absolute(optarg);
 
       break;
-    case 'c':
+    case 'C':
       Flags[0] = true;
 
       break;
@@ -636,7 +636,7 @@ int main(int argc, char **argv) {
       changeItems.emplace_back(optarg);
 
       break;
-    case 'i':
+    case 'I':
       Flags[3] = true;
 
       break;
@@ -673,7 +673,7 @@ int main(int argc, char **argv) {
       parseList(optarg);
 
       break;
-    case 'r':
+    case 'R':
       Flags[8] = true;
 
       break;
