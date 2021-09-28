@@ -49,8 +49,8 @@ playlist inlist.m3u
 
 ##### Examples previewing changes without writing the out playlist:
 
-playlist -x -u -r -o foo/outlist.m3u inlist.m3u  
-playlist -L all -x -u -r -o bar/outlist.m3u inlist.m3u
+playlist -x -u -R -o foo/outlist.m3u inlist.m3u  
+playlist -L all -x -u -R -o bar/outlist.m3u inlist.m3u
 
 ### Convert
 #### Playlist can convert between m3u, pls and xspf formats.
@@ -68,19 +68,19 @@ playlist -m -o outlist.pls inlist.xspf
 
 ##### Example relocating an xspf, transforming the targets to paths relative to foo:
 
-playlist -r -o foo/outlist.xspf inlist.xspf
+playlist -R -o foo/outlist.xspf inlist.xspf
 
 ##### Example transforming the targets of an xspf to paths relative to /foo/bar:
 
-playlist -b /foo/bar -o outlist.xspf inlist.xspf
+playlist -B /foo/bar -o outlist.xspf inlist.xspf
 
 ##### Example transforming the targets of an m3u into canonical paths:
 
-playlist -c -o outlist.m3u inlist.m3u
+playlist -C -o outlist.m3u inlist.m3u
 
 ##### Example uri-encoding the targets of an m3u into canonical paths:
 
-playlist -i -o outlist.m3u inlist.m3u
+playlist -I -o outlist.m3u inlist.m3u
 
 ### Reconstruct
 #### Playlist can append and remove entries, replace targets, drop duplicate and unfound entries, randomize the order of entries, and concatenate multiple playlists.
