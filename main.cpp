@@ -37,7 +37,7 @@ namespace fs = std::filesystem;
 
 struct Entry {
   fs::path playlist;
-  std::string targetUri;
+  fs::path target;
   std::string title;
   float duration = 0;
   int track = 0;
@@ -105,7 +105,7 @@ const Entries ParseXSPF(const fs::path &playlist) {
 
       entry.duration = track.child("duration").text().as_int() / 1000.0;
       entry.playlist = playlist;
-      entry.targetUri = ProcessUri(track.child("location").text().as_string());
+      entry.target = ProcessUri(track.child("location").text().as_string());
       entry.title = track.child("title").text().as_string();
       entry.track =
           std::distance<pugi::xml_node::iterator>(trackList.begin(), track) + 1;
@@ -151,7 +151,7 @@ const Entries ParsePLS(const fs::path &playlist) {
 
     if (line.rfind("File" + std::to_string(t), 0) != std::string::npos) {
       entry.playlist = playlist;
-      entry.targetUri = ProcessUri(Split(line).second);
+      entry.target = ProcessUri(Split(line).second);
       entry.track = t;
 
       std::getline(file, line);
@@ -237,7 +237,7 @@ const Entries ParseM3U(const fs::path &playlist) {
       } else {
         entry.playlist = playlist;
       }
-      entry.targetUri = ProcessUri(line);
+      entry.target = ProcessUri(line);
       entry.track = t;
 
       entries.push_back(entry);
@@ -295,7 +295,7 @@ void WriteXSPF(std::ofstream &file, const Entries &entries) {
 
   for (const Entry &entry : entries) {
     pugi::xml_node track = trackList.append_child("track");
-    track.append_child("location").text().set(entry.targetUri.c_str());
+    track.append_child("location").text().set(entry.target.c_str());
 
     if (!Flags[5]) {
       if (!entry.title.empty())
@@ -317,7 +317,7 @@ void WritePLS(std::ofstream &file, const Entries &entries) {
   file << std::endl;
 
   for (const Entry &entry : entries) {
-    file << "File" << entry.track << "=" << entry.targetUri << std::endl;
+    file << "File" << entry.track << "=" << entry.target.string() << std::endl;
 
     if (!Flags[5]) {
       if (!entry.title.empty() || (entry.duration > 0)) {
@@ -366,7 +366,7 @@ void WriteM3U(std::ofstream &file, const Entries &entries) {
       }
     }
 
-    file << entry.targetUri << std::endl;
+    file << entry.target.string() << std::endl;
 
     if (!Flags[5] && (entry.track != (int)entries.size()))
       file << std::endl;
@@ -421,8 +421,8 @@ void ShowPlaylist(const Entries &entries) {
 
   for (const Entry &entry : entries) {
     std::string target = entry.localTarget
-                             ? fs::path(entry.targetUri).filename().string()
-                             : entry.targetUri,
+                             ? entry.target.filename().string()
+                             : entry.target.string(),
                 status;
     float duration = !entry.validTarget && Flags[11] ? 0 : entry.duration;
 
@@ -540,15 +540,15 @@ int main(int argc, char **argv) {
   const auto targetItem = [](const Entry &entry) {
     if (Flags[2])
       return KeyValue(std::to_string((int)std::round(entry.duration)),
-                      entry.targetUri);
+                      entry.target.string());
 
     if (Flags[7])
-      return KeyValue(entry.playlist.string(), entry.targetUri);
+      return KeyValue(entry.playlist.string(), entry.target.string());
 
     if (Flags[9])
-      return KeyValue(entry.title, entry.targetUri);
+      return KeyValue(entry.title, entry.target.string());
 
-    return KeyValue(std::to_string(entry.track), entry.targetUri);
+    return KeyValue(std::to_string(entry.track), entry.target.string());
   };
 
   auto find = [](const Entry &entry, const Entries &entries,
@@ -558,25 +558,21 @@ int main(int argc, char **argv) {
                           if (!sameList && (entry.playlist == e.playlist))
                             return false;
 
-                          if (entry.localTarget) {
-                            return (fs::weakly_canonical(entry.targetUri) ==
-                                    fs::weakly_canonical(e.targetUri));
-                          } else {
-                            return (entry.targetUri == e.targetUri);
-                          }
-                        });
+                          return (fs::weakly_canonical(entry.target.string()) ==
+                                  fs::weakly_canonical(e.target.string()));
+                      });
   };
 
   auto computeTargetDisposition = [&](Entries &entries) {
-    auto local = [](const std::string &targetUri) {
-      return (targetUri.find("://") == std::string::npos);
+    auto local = [](const std::string &target) {
+      return (target.find("://") == std::string::npos);
     };
 
     for (Entries::iterator it = entries.begin(); it != entries.end(); it++) {
       fs::current_path(it->playlist.parent_path());
 
-      it->localTarget = local(it->targetUri);
-      it->validTarget = (!it->localTarget || fs::exists(it->targetUri));
+      it->localTarget = local(it->target.string());
+      it->validTarget = (!it->localTarget || fs::exists(it->target));
       it->duplicateTarget = find(*it, entries) < it;
     }
   };
@@ -759,7 +755,7 @@ int main(int argc, char **argv) {
     for (const std::string &addItem : addItems) {
       Entry entry;
       entry.playlist = fs::current_path().append(".");
-      entry.targetUri = ProcessUri(addItem);
+      entry.target = ProcessUri(addItem);
       entry.track = entries.size() + 1;
 
       entries.push_back(entry);
@@ -786,7 +782,7 @@ int main(int argc, char **argv) {
             invalid();
           entry.duration = value.empty() ? 0 : std::stoi(value);
         } else if (key == "ta") {
-          entry.targetUri = ProcessUri(value);
+          entry.target = ProcessUri(value);
         } else if (key == "ti") {
           entry.title = value;
         } else {
@@ -828,7 +824,7 @@ int main(int argc, char **argv) {
         return uriStr.str();
       };
 
-      if (it->targetUri.empty() || (!it->validTarget && Flags[10]) ||
+      if (it->target.empty() || (!it->validTarget && Flags[10]) ||
           (it->duplicateTarget && Flags[1])) {
 
         it = entries.erase(it);
@@ -842,16 +838,16 @@ int main(int argc, char **argv) {
         fs::current_path(it->playlist.parent_path());
 
         if (Flags[0] || Flags[3]) {
-          it->targetUri = fs::weakly_canonical(it->targetUri).string();
+          it->target = fs::weakly_canonical(it->target).string();
 
           if (Flags[3])
-            it->targetUri = "file://" + encodeUri(it->targetUri);
+            it->target = "file://" + encodeUri(it->target);
         } else {
           if (!base.empty()) {
-            it->targetUri = fs::proximate(it->targetUri, base).string();
+            it->target = fs::proximate(it->target, base).string();
           } else if (Flags[8]) {
-            it->targetUri =
-                fs::proximate(it->targetUri, outPl.parent_path()).string();
+            it->target =
+                fs::proximate(it->target, outPl.parent_path()).string();
           }
         }
       }
