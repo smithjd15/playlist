@@ -529,6 +529,18 @@ int main(int argc, char **argv) {
   std::vector<std::string> addItems, changeItems;
   TargetItems all, dupe, network, unfound, unique;
 
+  const auto getPath = [](const fs::path &p1, const fs::path &p2) {
+    fs::path path(p1);
+
+    if (p2.has_root_directory()) {
+      path = p2;
+    } else {
+      path /= p2;
+    }
+
+    return path;
+  };
+
   auto parseList = [](const std::string &arg) {
     Flags[14] = (arg == "all");
     Flags[15] = (arg == "dupe");
@@ -569,10 +581,12 @@ int main(int argc, char **argv) {
     };
 
     for (Entries::iterator it = entries.begin(); it != entries.end(); it++) {
-      fs::current_path(it->playlist.parent_path());
+      fs::path target;
 
       it->localTarget = local(it->target.string());
-      it->validTarget = (!it->localTarget || fs::exists(it->target));
+      if (it->localTarget)
+        target = getPath(it->playlist.parent_path(), it->target);
+      it->validTarget = (!it->localTarget || fs::exists(target));
       it->duplicateTarget = find(*it, entries) < it;
     }
   };
@@ -613,7 +627,7 @@ int main(int argc, char **argv) {
 
       break;
     case 'B':
-      base = fs::absolute(optarg);
+      base = getPath(fs::current_path(), optarg);
 
       break;
     case 'C':
@@ -657,7 +671,7 @@ int main(int argc, char **argv) {
 
       break;
     case 'o':
-      outPl = fs::absolute(optarg);
+      outPl = getPath(fs::current_path(), optarg);
 
       break;
     case 'p':
@@ -713,7 +727,7 @@ int main(int argc, char **argv) {
   }
 
   for (; optind < argc; optind++) {
-    const fs::path inPl = fs::absolute(argv[optind]);
+    const fs::path inPl = getPath(fs::current_path(), argv[optind]);
     Entries inEntries;
 
     if (fs::exists(inPl)) {
@@ -809,6 +823,29 @@ int main(int argc, char **argv) {
                    std::default_random_engine());
 
     for (Entries::iterator it = entries.begin(); it != entries.end();) {
+      const auto resolvePathDotSegments = [](const fs::path &inPath) {
+        std::string path, segment;
+        std::stringstream segStream(inPath.string());
+
+        while (std::getline(segStream, segment, '/')) {
+          if (segment.empty())
+            continue;
+
+          if (segment == "..") {
+            std::size_t pos = path.find_last_of('/');
+
+            if (pos)
+              path = path.substr(0, pos);
+          } else {
+            if (inPath.has_root_path() || !path.empty())
+              path += "/";
+            path += segment;
+          }
+        }
+
+        return fs::path(path);
+      };
+
       const auto encodeUri = [](const std::string &uri) {
         std::ostringstream uriStr;
         std::regex r("[!:\\/\\-._~0-9A-Za-z]");
@@ -835,19 +872,19 @@ int main(int argc, char **argv) {
       it->track = std::distance(entries.begin(), it) + 1;
 
       if (it->localTarget) {
-        fs::current_path(it->playlist.parent_path());
+        fs::path target = getPath(it->playlist.parent_path(), it->target);
+        target = resolvePathDotSegments(target);
 
         if (Flags[0] || Flags[3]) {
-          it->target = fs::weakly_canonical(it->target).string();
+          it->target = target;
 
           if (Flags[3])
-            it->target = "file://" + encodeUri(it->target);
+            it->target = "file://" + encodeUri(target);
         } else {
           if (!base.empty()) {
-            it->target = fs::proximate(it->target, base).string();
+            it->target = target.lexically_relative(base);
           } else if (Flags[8]) {
-            it->target =
-                fs::proximate(it->target, outPl.parent_path()).string();
+            it->target = target.lexically_relative(outPl.parent_path());
           }
         }
       }
