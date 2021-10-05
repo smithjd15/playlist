@@ -786,7 +786,7 @@ int main(int argc, char **argv) {
             invalid();
           entry.duration = value.empty() ? 0 : std::stoi(value);
         } else if (key == "ta") {
-          entry.targetUri = value;
+          entry.targetUri = ProcessUri(value);
         } else if (key == "ti") {
           entry.title = value;
         } else {
