@@ -541,6 +541,10 @@ int main(int argc, char **argv) {
     return path;
   };
 
+  auto local = [](const std::string &target) {
+    return (target.find("://") == std::string::npos);
+  };
+
   auto parseList = [](const std::string &arg) {
     Flags[14] = (arg == "all");
     Flags[15] = (arg == "dupe");
@@ -576,16 +580,12 @@ int main(int argc, char **argv) {
   };
 
   auto computeTargetDisposition = [&](Entries &entries) {
-    auto local = [](const std::string &target) {
-      return (target.find("://") == std::string::npos);
-    };
-
     for (Entries::iterator it = entries.begin(); it != entries.end(); it++) {
-      fs::path target;
+      fs::path target = ProcessUri(it->target.string());
 
-      it->localTarget = local(it->target.string());
       if (it->localTarget)
-        target = getPath(it->playlist.parent_path(), it->target);
+        target = getPath(it->playlist.parent_path(), target);
+
       it->validTarget = (!it->localTarget || fs::exists(target));
       it->duplicateTarget = find(*it, entries) < it;
     }
@@ -739,6 +739,9 @@ int main(int argc, char **argv) {
     }
   }
 
+  for (Entries::iterator it = entries.begin(); it != entries.end(); it++)
+    it->localTarget = local(it->target);
+
   if (outPl.empty()) {
     if (Flags[11]) {
       std::cerr << "-x option requires an out playlist (-o)" << std::endl;
@@ -771,6 +774,7 @@ int main(int argc, char **argv) {
       entry.playlist = fs::current_path().append(".");
       entry.target = ProcessUri(addItem);
       entry.track = entries.size() + 1;
+      entry.localTarget = local(entry.target);
 
       entries.push_back(entry);
     }
@@ -797,6 +801,7 @@ int main(int argc, char **argv) {
           entry.duration = value.empty() ? 0 : std::stoi(value);
         } else if (key == "ta") {
           entry.target = ProcessUri(value);
+          entry.localTarget = local(entry.target);
         } else if (key == "ti") {
           entry.title = value;
         } else {
