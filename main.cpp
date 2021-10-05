@@ -478,7 +478,7 @@ void ShowHelp() {
   std::cout << "Copyright (C) 2021 James D. Smith" << std::endl;
   std::cout << std::endl;
   std::cout << "Usage: playlist [-l|-L|-D|-T|-P all|dupe|net|unfound|unique] "
-               "[-p] [[-C|-I]|[-R|-B path]] [-a target] [-r track] "
+               "[-p] [-f path] [[-C|-I]|[-R|-B path]] [-a target] [-r track] "
                "[-e track:ta(rget)|ti(tle)|du(ration)=value] [-d] [-u] [-n] "
                "[-m] [-q] [-v] [-x] [-o outfile.ext] infile..."
             << std::endl;
@@ -492,6 +492,7 @@ void ShowHelp() {
   std::cout << "\t-p Same as -l all" << std::endl;
   std::cout << std::endl;
   std::cout << "\t-x Preview changes (with -o)" << std::endl;
+  std::cout << "\t-f Prepend path to the in playlist targets" << std::endl;
   std::cout << "\t-o Out playlist file (.m3u, .pls, .xspf)" << std::endl;
   std::cout << "\t-R Out playlist targets relative to out playlist"
             << std::endl;
@@ -524,7 +525,7 @@ void ShowHelp() {
 }
 
 int main(int argc, char **argv) {
-  fs::path base, outPl;
+  fs::path base, outPl, prepend;
   Entries entries;
   std::vector<std::string> addItems, changeItems;
   TargetItems all, dupe, network, unfound, unique;
@@ -620,7 +621,7 @@ int main(int argc, char **argv) {
   };
 
   int c;
-  while ((c = getopt(argc, argv, "a:B:CdD:e:Il:L:mno:pP:r:RT:uvxqh")) != -1) {
+  while ((c = getopt(argc, argv, "a:B:CdD:e:f:Il:L:mno:pP:r:RT:uvxqh")) != -1) {
     switch (c) {
     case 'a':
       addItems.emplace_back(optarg);
@@ -646,6 +647,10 @@ int main(int argc, char **argv) {
       break;
     case 'e':
       changeItems.emplace_back(optarg);
+
+      break;
+    case 'f':
+      prepend = fs::path(optarg);
 
       break;
     case 'I':
@@ -739,8 +744,16 @@ int main(int argc, char **argv) {
     }
   }
 
-  for (Entries::iterator it = entries.begin(); it != entries.end(); it++)
+  for (Entries::iterator it = entries.begin(); it != entries.end(); it++) {
     it->localTarget = local(it->target);
+
+    if (!prepend.empty() && it->localTarget) {
+      fs::path target = prepend;
+      target /= it->target;
+
+      it->target = target;
+    }
+  }
 
   if (outPl.empty()) {
     if (Flags[11]) {
