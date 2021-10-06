@@ -27,7 +27,7 @@
 
 #include "unistd.h"
 
-#define VER 1.3
+#define VER 1.4
 
 #define PLS_SECTION "[playlist]"
 #define PLS_VERSION 2
@@ -420,9 +420,8 @@ void ShowPlaylist(const Entries &entries) {
             << "\tTarget" << std::endl;
 
   for (const Entry &entry : entries) {
-    std::string target = entry.localTarget
-                             ? entry.target.filename().string()
-                             : entry.target.string(),
+    std::string target = entry.localTarget ? entry.target.filename().string()
+                                           : entry.target.string(),
                 status;
     float duration = !entry.validTarget && Flags[11] ? 0 : entry.duration;
 
@@ -496,7 +495,7 @@ void ShowHelp() {
   std::cout << "\t-o Out playlist file (.m3u, .pls, .xspf)" << std::endl;
   std::cout << "\t-R Out playlist targets relative to out playlist"
             << std::endl;
-  std::cout << "\t-B Base path for relative targets (implied -R)" << std::endl;
+  std::cout << "\t-B Out playlist targets base path" << std::endl;
   std::cout << "\t-C Out playlist targets in canonical paths" << std::endl;
   std::cout << "\t-I Out playlist local targets in file URI scheme (implied -C)"
             << std::endl;
@@ -577,7 +576,7 @@ int main(int argc, char **argv) {
 
                           return (fs::weakly_canonical(entry.target.string()) ==
                                   fs::weakly_canonical(e.target.string()));
-                      });
+                        });
   };
 
   auto computeTargetDisposition = [&](Entries &entries) {
@@ -690,7 +689,7 @@ int main(int argc, char **argv) {
       parseList(optarg);
 
       break;
-     case 'r':
+    case 'r':
       changeItems.emplace_back(std::string(optarg) + ":ta=");
 
       break;
