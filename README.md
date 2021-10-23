@@ -125,4 +125,4 @@ playlist -o outlist.m3u inlist.m3u appendlist.pls
 
 ##### Example prepending a path to the targets of a playlist:
 
-playlist -o outlist.m3u -f /foo/bar inlist.m3u
+playlist -f /foo/bar -o outlist.m3u inlist.m3u
