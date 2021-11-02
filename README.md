@@ -20,7 +20,7 @@ and combine it with one of the following modifiers:
 all, list all entry targets;  
 dupe, list duplicate entry targets;  
 net, list entry network streams;  
-unfound, list entry unfound local targets;  
+unfound, list entry unfound targets (-s to also verify network targets);  
 unique, list entry targets unique to a playlist.  
 
 ##### Example listing all targets:

@@ -26,6 +26,9 @@
 #include "pugixml.hpp"
 
 #include "unistd.h"
+#ifdef LIBCURL
+#include "curl/curl.h"
+#endif
 
 #define VER 1.43
 
@@ -50,7 +53,7 @@ typedef std::pair<const std::string, std::string> KeyValue;
 typedef std::vector<KeyValue> TargetItems;
 typedef std::vector<Entry> Entries;
 
-std::bitset<18> Flags;
+std::bitset<19> Flags;
 
 const std::string ProcessUri(std::string uri) {
   int len = uri.size() - 2;
@@ -476,7 +479,11 @@ void ShowHelp() {
   std::cout << std::endl;
   std::cout << "Usage: playlist [-l|-L|-D|-T|-P all|dupe|net|unfound|unique] "
                "[-p] [-f path] [[-O|-I]|[-R|-B path]] [-a target] [-r track] "
+#ifdef LIBCURL
+               "[-e track:ta(rget)|ti(tle)|du(ration)=value] [-s] [-d] [-u] [-n] "
+#else
                "[-e track:ta(rget)|ti(tle)|du(ration)=value] [-d] [-u] [-n] "
+#endif
                "[-m] [-q] [-v] [-x] [-o outfile.ext] infile..."
             << std::endl;
   std::cout << std::endl;
@@ -504,6 +511,9 @@ void ShowHelp() {
   std::cout << "\t-u Remove unfound targets from out playlist" << std::endl;
   std::cout << "\t-n Out playlist targets in random order" << std::endl;
   std::cout << "\t-m Minimal out playlist (targets only)" << std::endl;
+#ifdef LIBCURL
+  std::cout << "\t-s Verify network targets" << std::endl;
+#endif
   std::cout << std::endl;
   std::cout << "\t-q Quiet (clobber out playlist)" << std::endl;
   std::cout << "\t-v Verbose" << std::endl;
@@ -532,7 +542,27 @@ int main(int argc, char **argv) {
   };
 
   const auto validTarget = [&](const fs::path &target) {
-    return (!localTarget(target.string()) || fs::exists(target));
+    const bool local = localTarget(target.string());
+    bool valid = (!local || fs::exists(target));
+#ifdef LIBCURL
+
+    if (!local && Flags[19]) {
+      CURL *curl = curl_easy_init();
+      CURLcode result;
+
+      curl_easy_setopt(curl, CURLOPT_URL, target.c_str());
+      curl_easy_setopt(curl, CURLOPT_NOBODY, true);
+      curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
+      curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10);
+
+      result = curl_easy_perform(curl);
+      curl_easy_cleanup(curl);
+
+      valid = (result == CURLE_OK);
+    }
+#endif
+
+    return valid;
   };
 
   const auto getPath = [&](const fs::path &p1, const fs::path &p2) {
@@ -617,7 +647,11 @@ int main(int argc, char **argv) {
   };
 
   int c;
+#ifdef LIBCURL
+  while ((c = getopt(argc, argv, "a:B:dD:e:f:Il:L:mno:OpP:r:RsT:uvxqh")) != -1) {
+#else
   while ((c = getopt(argc, argv, "a:B:dD:e:f:Il:L:mno:OpP:r:RT:uvxqh")) != -1) {
+#endif
     switch (c) {
     case 'a':
       addItems.emplace_back(optarg);
@@ -694,6 +728,12 @@ int main(int argc, char **argv) {
       Flags[8] = true;
 
       break;
+#ifdef LIBCURL
+    case 's':
+      Flags[19] = true;
+
+      break;
+#endif
     case 'T':
       Flags[9] = true;
 
