@@ -10,10 +10,15 @@ Playlist supports the common title and duration metadata for m3u, pls, and xspf,
 To list playlist targets, pick one of the following options,
 
 -l, list targets only.  
--L, list tracks with targets.  
--D, list durations with targets.  
--T, list titles with targets.  
+-L, list track with targets.  
 -P, list playlists with targets.  
+-A, list artists with targets.  
+-T, list titles with targets.  
+-M, list albums with targets.  
+-E, list comments with targets.  
+-D, list identifiers with targets.  
+-G, list image with targets.  
+-N, list info with targets.  
 
 and combine it with one of the following modifiers:
 
@@ -27,9 +32,9 @@ unique, list entry targets unique to a playlist.
 
 playlist -l all inlist.m3u
 
-##### Example listing duplicate targets and durations:
+##### Example listing duplicate targets and identifiers:
 
-playlist -D dupe inlist.m3u
+playlist -D dupe inlist.xspf
 
 ##### Example listing network targets and titles:
 

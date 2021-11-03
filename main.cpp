@@ -60,7 +60,7 @@ typedef std::pair<const std::string, std::string> KeyValue;
 typedef std::vector<KeyValue> TargetItems;
 typedef std::vector<Entry> Entries;
 
-std::bitset<19> Flags;
+std::bitset<24> Flags;
 
 const std::string ProcessUri(std::string uri) {
   int len = uri.size() - 2;
@@ -518,22 +518,28 @@ void ShowHelp() {
   std::cout << "playlist version " << VER << std::endl;
   std::cout << "Copyright (C) 2021, 2022 James D. Smith" << std::endl;
   std::cout << std::endl;
-  std::cout << "Usage: playlist [-l|-L|-D|-T|-P all|dupe|net|unfound|unique] "
-               "[-p] [-f path] [[-O|-I]|[-R|-B path]] [-a target] [-r track] "
+  std::cout << "Usage: playlist [-l|-L|-P|-A|-T|-M|-E|-D|-G|-N "
+               "all|dupe|net|unfound|unique] [-p] [-f path] "
+               "[[-O|-I]|[-R|-B path]] [-a target] [-r track] "
 #ifdef LIBCURL
-               "[-e track:FIELD=value] [-s] [-d] [-u] [-n] "
+               "[-e track:FIELD=value] [-s] [-d] [-u] [-n] [-m] "
 #else
-               "[-e track:FIELD=value] [-d] [-u] [-n] "
+               "[-e track:FIELD=value] [-d] [-u] [-n] [-m] "
 #endif
-               "[-m] [-q] [-v] [-x] [-o outfile.ext] infile..."
+               "[-q] [-v] [-x] [-o outfile.ext] infile..."
             << std::endl;
   std::cout << std::endl;
   std::cout << "Options:" << std::endl;
   std::cout << "\t-l LIST Targets only" << std::endl;
   std::cout << "\t-L LIST Tracks and targets" << std::endl;
-  std::cout << "\t-D LIST Durations and targets" << std::endl;
-  std::cout << "\t-T LIST Titles and targets" << std::endl;
   std::cout << "\t-P LIST Playlist and targets" << std::endl;
+  std::cout << "\t-A LIST Artists and targets" << std::endl;
+  std::cout << "\t-T LIST Titles and targets" << std::endl;
+  std::cout << "\t-M LIST Albums and targets" << std::endl;
+  std::cout << "\t-E LIST Comments and targets" << std::endl;
+  std::cout << "\t-D LIST Identifiers and targets" << std::endl;
+  std::cout << "\t-G LIST Image and targets" << std::endl;
+  std::cout << "\t-N LIST Info and targets" << std::endl;
   std::cout << "\t-p Same as -l all" << std::endl;
   std::cout << std::endl;
   std::cout << "\t-x Preview changes (with -o)" << std::endl;
@@ -561,7 +567,7 @@ void ShowHelp() {
   std::cout << "\t-h This help" << std::endl;
   std::cout << std::endl;
   std::cout << "FIELD can be one of: (ta)rget, (ar)tist, (ti)tle, (al)bum, "
-               "(co)mment, (id)entifier, (in)fo, (im)age, album (tr)ack, (du)ration"
+               "(co)mment, (id)entifier, (im)age, (in)fo, album (tr)ack, (du)ration"
             << std::endl;
   std::cout << std::endl;
   std::cout << "LIST can be one of: all, dupe, net, unfound, or unique "
@@ -638,15 +644,29 @@ int main(int argc, char **argv) {
   };
 
   const auto targetItem = [](const Entry &entry) {
-    if (Flags[2])
-      return KeyValue(std::to_string((int)std::round(entry.duration)),
-                      entry.target.string());
-
     if (Flags[7])
       return KeyValue(entry.playlist.string(), entry.target.string());
 
+    if (Flags[20])
+      return KeyValue(entry.artist, entry.target.string());
+
     if (Flags[9])
       return KeyValue(entry.title, entry.target.string());
+
+    if (Flags[21])
+      return KeyValue(entry.album, entry.target.string());
+
+    if (Flags[22])
+      return KeyValue(entry.comment, entry.target.string());
+
+    if (Flags[2])
+      return KeyValue(entry.identifier, entry.target.string());
+
+    if (Flags[23])
+      return KeyValue(entry.image, entry.target.string());
+
+    if (Flags[24])
+      return KeyValue(entry.info, entry.target.string());
 
     return KeyValue(std::to_string(entry.track), entry.target.string());
   };
@@ -693,11 +713,17 @@ int main(int argc, char **argv) {
 
   int c;
 #ifdef LIBCURL
-  while ((c = getopt(argc, argv, "a:B:dD:e:f:Il:L:mno:OpP:r:RsT:uvxqh")) != -1) {
+  while ((c = getopt(argc, argv, "a:A:B:dD:e:E:f:G:Il:L:mM:nN:o:OpP:r:RsT:uvxqh")) != -1) {
 #else
-  while ((c = getopt(argc, argv, "a:B:dD:e:f:Il:L:mno:OpP:r:RT:uvxqh")) != -1) {
+  while ((c = getopt(argc, argv, "a:A:B:dD:e:E:f:G:Il:L:mM:nN:o:OpP:r:RT:uvxqh")) != -1) {
 #endif
     switch (c) {
+    case 'A':
+      Flags[20] = true;
+
+      parseList(optarg);
+
+      break;
     case 'a':
       addItems.emplace_back(optarg);
 
@@ -720,8 +746,20 @@ int main(int argc, char **argv) {
       changeItems.emplace_back(optarg);
 
       break;
+    case 'E':
+      Flags[22] = true;
+
+      parseList(optarg);
+
+      break;
     case 'f':
       prepend = getPath(fs::current_path(), optarg);
+
+      break;
+    case 'G':
+      Flags[23] = true;
+
+      parseList(optarg);
 
       break;
     case 'I':
@@ -742,8 +780,20 @@ int main(int argc, char **argv) {
       Flags[5] = true;
 
       break;
+    case 'M':
+      Flags[21] = true;
+
+      parseList(optarg);
+
+      break;
     case 'n':
       Flags[6] = true;
+
+      break;
+    case 'N':
+      Flags[24] = true;
+
+      parseList(optarg);
 
       break;
     case 'o':
