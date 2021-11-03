@@ -39,9 +39,16 @@
 namespace fs = std::filesystem;
 
 struct Entry {
+  fs::path image;
   fs::path playlist;
   fs::path target;
+  std::string album;
+  std::string artist;
+  std::string comment;
+  std::string identifier;
+  std::string info;
   std::string title;
+  int albumTrack = 0;
   float duration = 0;
   int track = 0;
   bool duplicateTarget = false;
@@ -110,6 +117,13 @@ const Entries ParseXSPF(const fs::path &playlist) {
       entry.playlist = playlist;
       entry.target = ProcessUri(track.child("location").text().as_string());
       entry.title = track.child("title").text().as_string();
+      entry.artist = track.child("creator").text().as_string();
+      entry.album = track.child("album").text().as_string();
+      entry.comment = track.child("annotation").text().as_string();
+      entry.identifier = track.child("identifier").text().as_string();
+      entry.image = track.child("image").text().as_string();
+      entry.info = track.child("info").text().as_string();
+      entry.albumTrack = track.child("trackNum").text().as_int();
       entry.track =
           std::distance<pugi::xml_node::iterator>(trackList.begin(), track) + 1;
 
@@ -300,12 +314,24 @@ void WriteXSPF(std::ofstream &file, const Entries &entries) {
     if (!Flags[5]) {
       if (!entry.title.empty())
         track.append_child("title").text().set(entry.title.c_str());
-
-      if (entry.duration > 0) {
+      if (!entry.artist.empty())
+        track.append_child("creator").text().set(entry.artist.c_str());
+      if (!entry.album.empty())
+        track.append_child("album").text().set(entry.album.c_str());
+      if (!entry.comment.empty())
+        track.append_child("annotation").text().set(entry.comment.c_str());
+      if (!entry.identifier.empty())
+        track.append_child("identifier").text().set(entry.identifier.c_str());
+      if (!entry.info.empty())
+        track.append_child("info").text().set(entry.info.c_str());
+      if (!entry.image.empty())
+        track.append_child("image").text().set(entry.image.c_str());
+      if (entry.albumTrack)
+        track.append_child("trackNum").text().set(entry.albumTrack);
+      if (entry.duration > 0)
         track.append_child("duration")
             .text()
             .set(std::to_string((int)(entry.duration * 1000)).c_str());
-      }
     }
   }
 
@@ -320,9 +346,15 @@ void WritePLS(std::ofstream &file, const Entries &entries) {
     file << "File" << entry.track << "=" << entry.target.string() << std::endl;
 
     if (!Flags[5]) {
-      if (!entry.title.empty() || (entry.duration > 0)) {
-        if (!entry.title.empty())
-          file << "Title" << entry.track << "=" << entry.title << std::endl;
+      if (!entry.artist.empty() || !entry.title.empty() || (entry.duration > 0)) {
+        if (!entry.artist.empty() || !entry.title.empty()) {
+          file << "Title" << entry.track << "=" << entry.artist;
+
+          if (!entry.artist.empty() && !entry.title.empty())
+            file << " - ";
+
+          file << entry.title << std::endl;
+        }
 
         if (entry.duration > 0) {
           file << "Length" << entry.track << "=" << std::round(entry.duration)
@@ -352,7 +384,7 @@ void WriteM3U(std::ofstream &file, const Entries &entries) {
 
   for (const Entry &entry : entries) {
     if (!Flags[5]) {
-      if (!entry.title.empty() || entry.duration) {
+      if (!entry.artist.empty() || !entry.title.empty() || entry.duration) {
         file << "#EXTINF:";
 
         if (entry.duration > 0) {
@@ -361,8 +393,14 @@ void WriteM3U(std::ofstream &file, const Entries &entries) {
           file << "-1,";
         }
 
-        if (!entry.title.empty())
+        if (!entry.artist.empty() || !entry.title.empty()) {
+          file << entry.artist;
+
+          if (!entry.artist.empty() && !entry.title.empty())
+            file << " - ";
+
           file << entry.title;
+        }
 
         file << std::endl;
       }
@@ -424,6 +462,9 @@ void ShowPlaylist(const Entries &entries) {
   for (const Entry &entry : entries) {
     std::string target = entry.localTarget ? entry.target.filename().string()
                                            : entry.target.string(),
+                title = (!entry.artist.empty() && !entry.title.empty())
+                                           ? entry.artist + " - " + entry.title
+                                           : entry.title,
                 status;
     float duration = (!entry.validTarget && Flags[11]) ? 0 : entry.duration;
 
@@ -449,7 +490,7 @@ void ShowPlaylist(const Entries &entries) {
       totalDuration += entry.duration;
 
     std::cout << entry.track << "\t" << status << "\t" << duration << "\t"
-              << entry.title << "\t" << target << std::endl;
+              << title << "\t" << target << std::endl;
   }
 
   duration = totalDuration;
@@ -480,9 +521,9 @@ void ShowHelp() {
   std::cout << "Usage: playlist [-l|-L|-D|-T|-P all|dupe|net|unfound|unique] "
                "[-p] [-f path] [[-O|-I]|[-R|-B path]] [-a target] [-r track] "
 #ifdef LIBCURL
-               "[-e track:ta(rget)|ti(tle)|du(ration)=value] [-s] [-d] [-u] [-n] "
+               "[-e track:FIELD=value] [-s] [-d] [-u] [-n] "
 #else
-               "[-e track:ta(rget)|ti(tle)|du(ration)=value] [-d] [-u] [-n] "
+               "[-e track:FIELD=value] [-d] [-u] [-n] "
 #endif
                "[-m] [-q] [-v] [-x] [-o outfile.ext] infile..."
             << std::endl;
@@ -518,6 +559,10 @@ void ShowHelp() {
   std::cout << "\t-q Quiet (clobber out playlist)" << std::endl;
   std::cout << "\t-v Verbose" << std::endl;
   std::cout << "\t-h This help" << std::endl;
+  std::cout << std::endl;
+  std::cout << "FIELD can be one of: (ta)rget, (ar)tist, (ti)tle, (al)bum, "
+               "(co)mment, (id)entifier, (in)fo, (im)age, album (tr)ack, (du)ration"
+            << std::endl;
   std::cout << std::endl;
   std::cout << "LIST can be one of: all, dupe, net, unfound, or unique "
                "(multiple infiles)"
@@ -849,15 +894,31 @@ int main(int argc, char **argv) {
       auto setEntry = [&](Entry &entry) {
         entry.playlist = fs::current_path().append(".");
 
-        if (key == "du") {
+        if (key == "ta") {
+          entry.target = ProcessUri(value);
+          entry.localTarget = localTarget(entry.target.string());
+        } else if (key == "ar") {
+          entry.artist = value;
+        } else if (key == "ti") {
+          entry.title = value;
+        } else if (key == "al") {
+          entry.album = value;
+        } else if (key == "co") {
+          entry.comment = value;
+        } else if (key == "id") {
+          entry.identifier = value;
+        } else if (key == "im") {
+          entry.image = value;
+        } else if (key == "in") {
+          entry.info = value;
+        } else if (key == "tr") {
+          if (!std::all_of(value.begin(), value.end(), isdigit))
+            invalid();
+          entry.albumTrack = value.empty() ? 0 : std::stoi(value);
+        } else if (key == "du") {
           if (!std::all_of(value.begin(), value.end(), isdigit))
             invalid();
           entry.duration = value.empty() ? 0 : std::stoi(value);
-        } else if (key == "ta") {
-          entry.target = ProcessUri(value);
-          entry.localTarget = localTarget(entry.target.string());
-        } else if (key == "ti") {
-          entry.title = value;
         } else {
           invalid();
         }

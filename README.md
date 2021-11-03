@@ -1,8 +1,8 @@
 # Playlist
 
-Playlist is a tool for media playlist files. It can convert between common playlist formats; identify unfound, duplicate, network, and unique (between multiple playlists) entries; concatenate multiple playlists; remove duplicate and unfound entries; randomize entry order; append and remove entries; change and remove duration and title metadata; and transform local targets into absolute paths, or paths relative to the out playlist or any arbitrary path.
+Playlist is a tool for media playlist files. It can convert between common playlist formats; identify unfound, duplicate, network, and unique (between multiple playlists) entries; concatenate multiple playlists; remove duplicate and unfound entries; randomize entry order; append and remove entries; change and remove metadata; and transform local targets into absolute paths, or paths relative to the out playlist or any arbitrary path.
 
-Playlist doesn't read every possible variant of playlist metadata, so a playlist created with it from such 'rich' playlists won't have some metadata; it is limited to target metadata common between the m3u, pls, and xspf formats (duration and title).
+Playlist supports the common title and duration metadata for m3u, pls, and xspf, and also creator (artist), album, annotation (comment), identifier, image, info, and album track for xspf.
 
 ### Inspect
 #### Playlist can list all or certain targets, and provide an entry overview and summary.
