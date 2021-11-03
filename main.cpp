@@ -29,6 +29,9 @@
 #ifdef LIBCURL
 #include "curl/curl.h"
 #endif
+#ifdef TAGLIB
+#include "taglib/fileref.h"
+#endif
 
 #define VER 1.43
 
@@ -60,7 +63,7 @@ typedef std::pair<const std::string, std::string> KeyValue;
 typedef std::vector<KeyValue> TargetItems;
 typedef std::vector<Entry> Entries;
 
-std::bitset<24> Flags;
+std::bitset<25> Flags;
 
 const std::string ProcessUri(std::string uri) {
   int len = uri.size() - 2;
@@ -522,9 +525,17 @@ void ShowHelp() {
                "all|dupe|net|unfound|unique] [-p] [-f path] "
                "[[-O|-I]|[-R|-B path]] [-a target] [-r track] "
 #ifdef LIBCURL
+#ifdef TAGLIB
+               "[-e track:FIELD=value] [-s] [-i] [-d] [-u] [-n] [-m] "
+#else
                "[-e track:FIELD=value] [-s] [-d] [-u] [-n] [-m] "
+#endif
+#else
+#ifdef TAGLIB
+               "[-e track:FIELD=value] [-i] [-d] [-u] [-n] [-m] "
 #else
                "[-e track:FIELD=value] [-d] [-u] [-n] [-m] "
+#endif
 #endif
                "[-q] [-v] [-x] [-o outfile.ext] infile..."
             << std::endl;
@@ -560,6 +571,9 @@ void ShowHelp() {
   std::cout << "\t-m Minimal out playlist (targets only)" << std::endl;
 #ifdef LIBCURL
   std::cout << "\t-s Verify network targets" << std::endl;
+#endif
+#ifdef TAGLIB
+  std::cout << "\t-i Get entry metadata from local targets" << std::endl;
 #endif
   std::cout << std::endl;
   std::cout << "\t-q Quiet (clobber out playlist)" << std::endl;
@@ -643,6 +657,24 @@ int main(int argc, char **argv) {
     Flags[18] = (arg == "unique");
   };
 
+#ifdef TAGLIB
+  auto fetchMetadata = [&](Entry &entry) {
+    TagLib::FileRef file = TagLib::FileRef(
+        getPath(entry.playlist.parent_path(), entry.target).c_str());
+
+    if (!file.isNull() && !file.tag()->isEmpty()) {
+      entry.album = file.tag()->album().toCString();
+      entry.albumTrack = file.tag()->track();
+      entry.artist = file.tag()->artist().toCString();
+      entry.comment = file.tag()->comment().toCString();
+      entry.duration = file.audioProperties()->lengthInSeconds();
+      entry.title = file.tag()->title().toCString();
+    } else if (!Flags[13]) {
+      std::cerr << "Could not read target tag: " << entry.target << std::endl;
+    }
+  };
+
+#endif
   const auto targetItem = [](const Entry &entry) {
     if (Flags[7])
       return KeyValue(entry.playlist.string(), entry.target.string());
@@ -720,9 +752,17 @@ int main(int argc, char **argv) {
 
   int c;
 #ifdef LIBCURL
+#ifdef TAGLIB
+  while ((c = getopt(argc, argv, "a:A:B:dD:e:E:f:G:iIl:L:mM:nN:o:OpP:r:RsT:uvxqh")) != -1) {
+#else
   while ((c = getopt(argc, argv, "a:A:B:dD:e:E:f:G:Il:L:mM:nN:o:OpP:r:RsT:uvxqh")) != -1) {
+#endif
+#else
+#ifdef TAGLIB
+  while ((c = getopt(argc, argv, "a:A:B:dD:e:E:f:G:iIl:L:mM:nN:o:OpP:r:RT:uvxqh")) != -1) {
 #else
   while ((c = getopt(argc, argv, "a:A:B:dD:e:E:f:G:Il:L:mM:nN:o:OpP:r:RT:uvxqh")) != -1) {
+#endif
 #endif
     switch (c) {
     case 'A':
@@ -769,6 +809,12 @@ int main(int argc, char **argv) {
       parseList(optarg);
 
       break;
+#ifdef TAGLIB
+    case 'i':
+      Flags[25] = true;
+
+      break;
+#endif
     case 'I':
       Flags[3] = true;
 
@@ -894,6 +940,11 @@ int main(int argc, char **argv) {
     };
 
     computeTargets(it->target, it->localTarget, it->validTarget);
+
+#ifdef TAGLIB
+    if (it->localTarget && it->validTarget && Flags[25])
+      fetchMetadata(*it);
+#endif
 
     it->duplicateTarget = find(*it, entries) < it;
   }
