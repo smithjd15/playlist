@@ -490,7 +490,7 @@ void ShowHelp() {
   std::cout << "\t-p Same as -l all" << std::endl;
   std::cout << std::endl;
   std::cout << "\t-x Preview changes (with -o)" << std::endl;
-  std::cout << "\t-f Prepend path to the in playlist targets" << std::endl;
+  std::cout << "\t-f In playlist relative local target base path" << std::endl;
   std::cout << "\t-o Out playlist file (.m3u, .pls, .xspf)" << std::endl;
   std::cout << "\t-R Out playlist targets relative to out playlist"
             << std::endl;
@@ -528,20 +528,31 @@ int main(int argc, char **argv) {
   std::vector<std::string> addItems, changeItems;
   TargetItems all, dupe, network, unfound, unique;
 
-  const auto getPath = [](const fs::path &p1, const fs::path &p2) {
-    fs::path path(p1);
+  const auto localTarget = [](const std::string &target) {
+    return (target.find("://") == std::string::npos);
+  };
 
-    if (p2.has_root_directory()) {
-      path = p2;
+  const auto validTarget = [&](const fs::path &target) {
+    return (!localTarget(target.string()) || fs::exists(target));
+  };
+
+  const auto getPath = [&](const fs::path &p1, const fs::path &p2) {
+    fs::path path;
+
+    if (localTarget(p2.string())) {
+      if (p2.has_root_directory()) {
+        path = p2;
+      } else {
+        path = p1;
+        path /= p2;
+      }
+
+      path = path.lexically_normal();
     } else {
-      path /= p2;
+      path = p2;
     }
 
     return path;
-  };
-
-  auto local = [](const std::string &target) {
-    return (target.find("://") == std::string::npos);
   };
 
   auto parseList = [](const std::string &arg) {
@@ -576,18 +587,6 @@ int main(int argc, char **argv) {
                           return (fs::weakly_canonical(entry.target.string()) ==
                                   fs::weakly_canonical(e.target.string()));
                         });
-  };
-
-  auto computeTargetDisposition = [&](Entries &entries) {
-    for (Entries::iterator it = entries.begin(); it != entries.end(); it++) {
-      fs::path target = ProcessUri(it->target.string());
-
-      if (it->localTarget)
-        target = getPath(it->playlist.parent_path(), target);
-
-      it->validTarget = (!it->localTarget || fs::exists(target));
-      it->duplicateTarget = find(*it, entries) < it;
-    }
   };
 
   auto groupTargetItems = [&](const Entries &entries) {
@@ -644,7 +643,7 @@ int main(int argc, char **argv) {
 
       break;
     case 'f':
-      prepend = fs::path(optarg);
+      prepend = getPath(fs::current_path(), optarg);
 
       break;
     case 'I':
@@ -743,14 +742,19 @@ int main(int argc, char **argv) {
   }
 
   for (Entries::iterator it = entries.begin(); it != entries.end(); it++) {
-    it->localTarget = local(it->target);
+    auto computeTargets = [&](fs::path &target, bool &local, bool &valid) {
+      target = ProcessUri(target.string());
 
-    if (!prepend.empty() && it->localTarget) {
-      fs::path target = prepend;
-      target /= it->target;
+      if (!prepend.empty())
+        target = getPath(prepend, target);
 
-      it->target = target;
-    }
+      local = localTarget(target.string());
+      valid = validTarget(getPath(it->playlist.parent_path(), target));
+    };
+
+    computeTargets(it->target, it->localTarget, it->validTarget);
+
+    it->duplicateTarget = find(*it, entries) < it;
   }
 
   if (outPl.empty()) {
@@ -760,7 +764,6 @@ int main(int argc, char **argv) {
       return 2;
     }
 
-    computeTargetDisposition(entries);
     groupTargetItems(entries);
   } else {
     if (fs::exists(outPl) && !Flags[13] && !Flags[11]) {
@@ -785,7 +788,8 @@ int main(int argc, char **argv) {
       entry.playlist = fs::current_path().append(".");
       entry.target = ProcessUri(addItem);
       entry.track = entries.size() + 1;
-      entry.localTarget = local(entry.target);
+      entry.localTarget = localTarget(entry.target.string());
+      entry.validTarget = validTarget(entry.target.string());
 
       entries.push_back(entry);
     }
@@ -812,7 +816,7 @@ int main(int argc, char **argv) {
           entry.duration = value.empty() ? 0 : std::stoi(value);
         } else if (key == "ta") {
           entry.target = ProcessUri(value);
-          entry.localTarget = local(entry.target);
+          entry.localTarget = localTarget(entry.target.string());
         } else if (key == "ti") {
           entry.title = value;
         } else {
@@ -831,8 +835,6 @@ int main(int argc, char **argv) {
         if (entry.track == std::stoi(track))
           setEntry(entry);
     }
-
-    computeTargetDisposition(entries);
 
     if (Flags[6])
       std::shuffle(entries.begin(), entries.end(),
@@ -854,6 +856,22 @@ int main(int argc, char **argv) {
         return uriStr.str();
       };
 
+      const auto transformPath = [&](const fs::path &basePath, fs::path &path) {
+        fs::path target = getPath(basePath, path);
+
+        if (Flags[0]) {
+          path = target;
+        } else if (Flags[3]) {
+          path = "file://" + encodeUri(target);
+        } else if (Flags[8]) {
+          path = target.lexically_relative(outPl.parent_path());
+        } else if (!base.empty()) {
+          path = target.lexically_relative(base);
+        }
+      };
+
+      it->duplicateTarget = find(*it, entries) < it;
+
       if (it->target.empty() || (!it->validTarget && Flags[10]) ||
           (it->duplicateTarget && Flags[1])) {
 
@@ -865,21 +883,9 @@ int main(int argc, char **argv) {
       it->track = std::distance(entries.begin(), it) + 1;
 
       if (it->localTarget) {
-        fs::path target =
-            getPath(it->playlist.parent_path(), it->target).lexically_normal();
+        transformPath(it->playlist.parent_path(), it->target);
 
-        if (Flags[0] || Flags[3]) {
-          it->target = target;
-
-          if (Flags[3])
-            it->target = "file://" + encodeUri(target);
-        } else {
-          if (!base.empty()) {
-            it->target = target.lexically_relative(base);
-          } else if (Flags[8]) {
-            it->target = target.lexically_relative(outPl.parent_path());
-          }
-        }
+        it->validTarget = fs::exists(getPath(outPl.parent_path(), ProcessUri(it->target)));
       }
 
       it->playlist = outPl;
@@ -891,7 +897,6 @@ int main(int argc, char **argv) {
       std::cout << "Generated playlist: " << entries.size() << " entries"
                 << std::endl;
 
-    computeTargetDisposition(entries);
     groupTargetItems(entries);
   }
 
