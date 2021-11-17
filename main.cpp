@@ -41,9 +41,9 @@ struct Entry {
   std::string title;
   float duration = 0;
   int track = 0;
+  bool duplicateTarget = false;
   bool localTarget = false;
   bool validTarget = false;
-  bool duplicateTarget = false;
 };
 
 typedef std::pair<const std::string, std::string> KeyValue;
@@ -80,9 +80,9 @@ const std::string ProcessUri(std::string uri) {
     uri = uri.substr(5);
   }
 
-  if (uri.rfind("/..", 0) != std::string::npos) {
+  if (uri.rfind(fs::path::preferred_separator + std::string(".."), 0) !=
+      std::string::npos)
     uri = uri.substr(1);
-  }
 
   return uri;
 }
@@ -139,8 +139,7 @@ const Entries ParsePLS(const fs::path &playlist) {
   std::string line;
   bool plsSection(false);
   Entries entries;
-  int plsEntries(0);
-  int plsVersion(0);
+  int plsEntries(0), plsVersion(0);
 
   int t = 1;
   while (!file.eof()) {
@@ -280,7 +279,7 @@ void ParsePlaylist(const fs::path &playlist, Entries &entries) {
 }
 
 void WriteXSPF(std::ofstream &file, const Entries &entries) {
-  pugi::xml_node doc, playlist, trackList;
+  pugi::xml_node doc, playlist, track, trackList;
   pugi::xml_document pl;
 
   doc = pl.prepend_child(pugi::node_declaration);
@@ -294,7 +293,7 @@ void WriteXSPF(std::ofstream &file, const Entries &entries) {
   trackList = playlist.append_child("trackList");
 
   for (const Entry &entry : entries) {
-    pugi::xml_node track = trackList.append_child("track");
+    track = trackList.append_child("track");
     track.append_child("location").text().set(entry.target.c_str());
 
     if (!Flags[5]) {
@@ -345,12 +344,12 @@ void WritePLS(std::ofstream &file, const Entries &entries) {
 
 void WriteM3U(std::ofstream &file, const Entries &entries) {
   file << "#EXTM3U" << std::endl;
-  file << "#EXTENC: UTF-8" << std::endl;
+  file << "#EXTENC:UTF-8" << std::endl;
   file << std::endl;
 
   for (const Entry &entry : entries) {
     if (!Flags[5]) {
-      if ((!entry.title.empty() || entry.duration)) {
+      if (!entry.title.empty() || entry.duration) {
         file << "#EXTINF:";
 
         if (entry.duration > 0) {
@@ -392,7 +391,7 @@ void WritePlaylist(fs::path &playlist, const Entries &entries) {
   } else {
     std::cerr << "Unsupported output file format: " << extension << std::endl;
 
-    exit(2);
+    std::exit(2);
   }
 
   file.close();
@@ -400,7 +399,7 @@ void WritePlaylist(fs::path &playlist, const Entries &entries) {
   if (file.fail()) {
     std::cerr << "Write fail: " << playlist << std::endl;
 
-    exit(2);
+    std::exit(2);
   }
 
   if (Flags[12])
@@ -423,7 +422,7 @@ void ShowPlaylist(const Entries &entries) {
     std::string target = entry.localTarget ? entry.target.filename().string()
                                            : entry.target.string(),
                 status;
-    float duration = !entry.validTarget && Flags[11] ? 0 : entry.duration;
+    float duration = (!entry.validTarget && Flags[11]) ? 0 : entry.duration;
 
     if (entry.duplicateTarget) {
       status += "D";
@@ -492,10 +491,10 @@ void ShowHelp() {
   std::cout << "\t-x Preview changes (with -o)" << std::endl;
   std::cout << "\t-f In playlist relative local target base path" << std::endl;
   std::cout << "\t-o Out playlist file (.m3u, .pls, .xspf)" << std::endl;
-  std::cout << "\t-R Out playlist targets relative to out playlist"
+  std::cout << "\t-R Out playlist local targets relative to out playlist"
             << std::endl;
-  std::cout << "\t-B Out playlist targets base path" << std::endl;
-  std::cout << "\t-O Out playlist targets in absolute paths" << std::endl;
+  std::cout << "\t-B Out playlist local targets base path" << std::endl;
+  std::cout << "\t-O Out playlist local targets in absolute paths" << std::endl;
   std::cout << "\t-I Out playlist local targets in file URI scheme (implied -O)"
             << std::endl;
   std::cout << "\t-a Append entry" << std::endl;
@@ -772,8 +771,8 @@ int main(int argc, char **argv) {
       return 2;
     }
 
-    if ((Flags[0] && Flags[8]) || (Flags[0] && !base.empty()) ||
-        (Flags[3] && Flags[8]) || (Flags[3] && !base.empty())) {
+    if ((!base.empty() && Flags[0]) || (Flags[0] && Flags[8]) ||
+        (!base.empty() && Flags[3]) || (Flags[3] && Flags[8])) {
       std::cerr << "Cannot combine absolute and relative path transforms"
                 << std::endl;
 
@@ -804,14 +803,14 @@ int main(int argc, char **argv) {
       auto invalid = [&changeItem]() {
         std::cerr << "Parse error: " << changeItem << std::endl;
 
-        exit(2);
+        std::exit(2);
       };
 
       auto setEntry = [&](Entry &entry) {
         entry.playlist = fs::current_path().append(".");
 
         if (key == "du") {
-          if (!std::all_of(value.begin(), value.end(), ::isdigit))
+          if (!std::all_of(value.begin(), value.end(), isdigit))
             invalid();
           entry.duration = value.empty() ? 0 : std::stoi(value);
         } else if (key == "ta") {
@@ -824,7 +823,7 @@ int main(int argc, char **argv) {
         }
       };
 
-      if (track.empty() || !std::all_of(track.begin(), track.end(), ::isdigit))
+      if (track.empty() || !std::all_of(track.begin(), track.end(), isdigit))
         invalid();
       if (key.empty())
         invalid();

@@ -1,6 +1,6 @@
 # Playlist
 
-Playlist is a tool for media playlist files. It can convert between common playlist formats; identify unfound, duplicate, network, and unique (between multiple playlists) entries; concatenate multiple playlists; remove duplicate and unfound entries; randomize entry order; append and remove entries; change and remove duration and title metadata; and transform targets into absolute paths, or paths relative to the out playlist or any arbitrary path.
+Playlist is a tool for media playlist files. It can convert between common playlist formats; identify unfound, duplicate, network, and unique (between multiple playlists) entries; concatenate multiple playlists; remove duplicate and unfound entries; randomize entry order; append and remove entries; change and remove duration and title metadata; and transform local targets into absolute paths, or paths relative to the out playlist or any arbitrary path.
 
 Playlist doesn't read every possible variant of playlist metadata, so a playlist created with it from such 'rich' playlists won't have some metadata; it is limited to target metadata common between the m3u, pls, and xspf formats (duration and title).
 
@@ -17,11 +17,11 @@ To list playlist targets, pick one of the following options,
 
 and combine it with one of the following modifiers:
 
-all, list all targets;  
-dupe, list duplicate targets;  
-net, list network streams;  
-unfound, list unfound local targets;  
-unique, list targets unique to a playlist.  
+all, list all entry targets;  
+dupe, list duplicate entry targets;  
+net, list entry network streams;  
+unfound, list entry unfound local targets;  
+unique, list entry targets unique to a playlist.  
 
 ##### Example listing all targets:
 
@@ -76,14 +76,14 @@ playlist -B /foo/bar -o outlist.xspf inlist.xspf
 
 ##### Example transforming the targets of an m3u into absolute paths:
 
-playlist -C -o outlist.m3u inlist.m3u
+playlist -O -o outlist.m3u inlist.m3u
 
 ##### Example uri-encoding the targets of an m3u into absolute paths:
 
 playlist -I -o outlist.m3u inlist.m3u
 
 ### Reconstruct
-#### Playlist can append and remove entries, replace targets, drop duplicate and unfound entries, randomize the order of entries, and concatenate multiple playlists.
+#### Playlist can append, change, and remove entries, drop duplicate and unfound entries, randomize the order of entries, and concatenate multiple playlists.
 
 The -a and -e options can be used more than once.
 
