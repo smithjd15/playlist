@@ -44,6 +44,7 @@ namespace fs = std::filesystem;
 struct Entry {
   fs::path image;
   fs::path playlist;
+  std::string playlistTitle;
   fs::path target;
   std::string album;
   std::string artist;
@@ -63,7 +64,7 @@ typedef std::pair<const std::string, std::string> KeyValue;
 typedef std::vector<KeyValue> TargetItems;
 typedef std::vector<Entry> Entries;
 
-std::bitset<25> Flags;
+std::bitset<26> Flags;
 
 const std::string ProcessUri(std::string uri) {
   int len = uri.size() - 2;
@@ -105,12 +106,14 @@ const Entries ParseXSPF(const fs::path &playlist) {
   std::ifstream file(playlist);
   pugi::xml_parse_result result(playlistDoc.load(file));
   pugi::xml_node trackList, track;
+  std::string title;
   Entries entries;
 
   file.close();
 
   if (result && !file.bad() && playlistDoc.child(XSPF_ROOT)) {
     trackList = playlistDoc.child("playlist").child("trackList");
+    title = playlistDoc.child("playlist").child("title").text().as_string();
 
     for (track = trackList.child("track"); track;
          track = track.next_sibling("track")) {
@@ -118,6 +121,7 @@ const Entries ParseXSPF(const fs::path &playlist) {
 
       entry.duration = track.child("duration").text().as_int() / 1000.0;
       entry.playlist = playlist;
+      entry.playlistTitle = title;
       entry.target = ProcessUri(track.child("location").text().as_string());
       entry.title = track.child("title").text().as_string();
       entry.artist = track.child("creator").text().as_string();
@@ -228,12 +232,19 @@ const Entries ParsePLS(const fs::path &playlist) {
 
 const Entries ParseM3U(const fs::path &playlist) {
   std::ifstream file(playlist);
-  std::string line;
+  std::string line, title;
   Entries entries;
 
   int t = 1;
   while (!file.eof()) {
     Entry entry;
+
+    if (line.rfind("#PLAYLIST:", 0) != std::string::npos) {
+      title = Split(line, ":").second;
+      std::getline(file, line);
+      while (line.empty())
+        std::getline(file, line);
+    }
 
     if (line.rfind("#EXTINF:", 0) != std::string::npos) {
       std::size_t pos = line.find_first_of(",");
@@ -254,6 +265,7 @@ const Entries ParseM3U(const fs::path &playlist) {
       } else {
         entry.playlist = playlist;
       }
+      entry.playlistTitle = title;
       entry.target = ProcessUri(line);
       entry.track = t;
 
@@ -299,6 +311,7 @@ void ParsePlaylist(const fs::path &playlist, Entries &entries) {
 void WriteXSPF(std::ofstream &file, const Entries &entries) {
   pugi::xml_node doc, playlist, track, trackList;
   pugi::xml_document pl;
+  std::string title;
 
   doc = pl.prepend_child(pugi::node_declaration);
   doc.append_attribute("version") = "1.0";
@@ -311,6 +324,8 @@ void WriteXSPF(std::ofstream &file, const Entries &entries) {
   trackList = playlist.append_child("trackList");
 
   for (const Entry &entry : entries) {
+    title = entry.playlistTitle;
+
     track = trackList.append_child("track");
     track.append_child("location").text().set(entry.target.c_str());
 
@@ -337,6 +352,9 @@ void WriteXSPF(std::ofstream &file, const Entries &entries) {
             .set(std::to_string((int)(entry.duration * 1000)).c_str());
     }
   }
+
+  if (!title.empty() && !Flags[5])
+    playlist.insert_child_before("title", trackList).text().set(title.c_str());
 
   pl.save(file, "  ");
 }
@@ -379,41 +397,50 @@ void WritePLS(std::ofstream &file, const Entries &entries) {
 }
 
 void WriteM3U(std::ofstream &file, const Entries &entries) {
-  if (!Flags[5]) {
-    file << "#EXTM3U" << std::endl;
-    file << "#EXTENC:UTF-8" << std::endl;
-    file << std::endl;
-  }
+  std::stringstream playlist;
+  std::string title;
 
   for (const Entry &entry : entries) {
+    title = entry.playlistTitle;
+
     if (!Flags[5]) {
       if (!entry.artist.empty() || !entry.title.empty() || entry.duration) {
-        file << "#EXTINF:";
+        playlist << "#EXTINF:";
 
         if (entry.duration > 0) {
-          file << std::round(entry.duration) << ",";
+          playlist << std::round(entry.duration) << ",";
         } else {
-          file << "-1,";
+          playlist << "-1,";
         }
 
         if (!entry.artist.empty() || !entry.title.empty()) {
-          file << entry.artist;
+          playlist << entry.artist;
 
           if (!entry.artist.empty() && !entry.title.empty())
-            file << " - ";
+            playlist << " - ";
 
-          file << entry.title;
+          playlist << entry.title;
         }
 
-        file << std::endl;
+        playlist << std::endl;
       }
     }
 
-    file << entry.target.string() << std::endl;
+    playlist << entry.target.string() << std::endl;
 
     if (!Flags[5] && (entry.track != (int)entries.size()))
-      file << std::endl;
+      playlist << std::endl;
   }
+
+  if (!Flags[5]) {
+    file << "#EXTM3U" << std::endl;
+    file << "#EXTENC:UTF-8" << std::endl;
+    if (!title.empty())
+      file << "#PLAYLIST:" << title << std::endl;
+    file << std::endl;
+  }
+
+  file << playlist.rdbuf();
 }
 
 void WritePlaylist(fs::path &playlist, const Entries &entries) {
@@ -454,7 +481,7 @@ void ShowPlaylist(const Entries &entries) {
   int totalDuration(0), dupe(0), network(0), unfound(0);
   time_t duration;
   tm *dur;
-  std::string totalDur;
+  std::string playlistTitle, totalDur;
 
   std::cout << "Track"
             << "\tStatus"
@@ -486,6 +513,8 @@ void ShowPlaylist(const Entries &entries) {
       unfound++;
     }
 
+    playlistTitle = entry.playlistTitle;
+
     if (!entry.duplicateTarget && entry.localTarget && entry.validTarget)
       status = "*";
 
@@ -513,6 +542,7 @@ void ShowPlaylist(const Entries &entries) {
   std::cout << "[D]upe: " << dupe << "\t[N]etwork: " << network
             << "\t[U]nfound: " << unfound << "\tTotal: " << entries.size()
             << std::endl;
+  std::cout << "Known title: " << playlistTitle << std::endl;
   std::cout << "Total known duration: " << totalDuration << " seconds "
             << totalDur << std::endl;
 }
@@ -521,7 +551,7 @@ void ShowHelp() {
   std::cout << "playlist version " << VER << std::endl;
   std::cout << "Copyright (C) 2021, 2022 James D. Smith" << std::endl;
   std::cout << std::endl;
-  std::cout << "Usage: playlist [-l|-L|-P|-A|-T|-M|-E|-D|-G|-N "
+  std::cout << "Usage: playlist [-l|-L|-P|-J|-A|-T|-M|-E|-D|-G|-N "
                "all|dupe|net|unfound|unique] [-p] [-f path] "
                "[[-O|-I]|[-R|-B path]] [-a target] [-r track] "
 #ifdef LIBCURL
@@ -537,13 +567,14 @@ void ShowHelp() {
                "[-e track:FIELD=value] [-d] [-u] [-n] [-m] "
 #endif
 #endif
-               "[-q] [-v] [-x] [-o outfile.ext] infile..."
+               "[-t title] [-q] [-v] [-x] [-o outfile.ext] infile..."
             << std::endl;
   std::cout << std::endl;
   std::cout << "Options:" << std::endl;
   std::cout << "\t-l LIST Targets only" << std::endl;
   std::cout << "\t-L LIST Tracks and targets" << std::endl;
   std::cout << "\t-P LIST Playlist and targets" << std::endl;
+  std::cout << "\t-J LIST Playlist title and targets" << std::endl;
   std::cout << "\t-A LIST Artists and targets" << std::endl;
   std::cout << "\t-T LIST Titles and targets" << std::endl;
   std::cout << "\t-M LIST Albums and targets" << std::endl;
@@ -562,6 +593,7 @@ void ShowHelp() {
   std::cout << "\t-O Out playlist local targets in absolute paths" << std::endl;
   std::cout << "\t-I Out playlist local targets in file URI scheme (implied -O)"
             << std::endl;
+  std::cout << "\t-t Set out playlist title" << std::endl;
   std::cout << "\t-a Append entry" << std::endl;
   std::cout << "\t-r Remove entry (same as -e track:ta=)" << std::endl;
   std::cout << "\t-e Change entry" << std::endl;
@@ -598,6 +630,7 @@ void ShowHelp() {
 
 int main(int argc, char **argv) {
   fs::path base, outPl, prepend;
+  std::string title;
   Entries entries;
   std::vector<std::string> addItems, changeItems;
   TargetItems all, dupe, network, unfound, unique;
@@ -679,6 +712,9 @@ int main(int argc, char **argv) {
     if (Flags[7])
       return KeyValue(entry.playlist.string(), entry.target.string());
 
+    if (Flags[26])
+      return KeyValue(entry.playlistTitle, entry.target.string());
+
     if (Flags[20])
       return KeyValue(entry.artist, entry.target.string());
 
@@ -753,15 +789,19 @@ int main(int argc, char **argv) {
   int c;
 #ifdef LIBCURL
 #ifdef TAGLIB
-  while ((c = getopt(argc, argv, "a:A:B:dD:e:E:f:G:iIl:L:mM:nN:o:OpP:r:RsT:uvxqh")) != -1) {
+  while ((c = getopt(argc, argv,
+                     "a:A:B:dD:e:E:f:G:iIJ:l:L:mM:nN:o:OpP:r:Rst:T:uvxqh")) != -1) {
 #else
-  while ((c = getopt(argc, argv, "a:A:B:dD:e:E:f:G:Il:L:mM:nN:o:OpP:r:RsT:uvxqh")) != -1) {
+  while ((c = getopt(argc, argv,
+                     "a:A:B:dD:e:E:f:G:IJ:l:L:mM:nN:o:OpP:r:Rst:T:uvxqh")) != -1) {
 #endif
 #else
 #ifdef TAGLIB
-  while ((c = getopt(argc, argv, "a:A:B:dD:e:E:f:G:iIl:L:mM:nN:o:OpP:r:RT:uvxqh")) != -1) {
+  while ((c = getopt(argc, argv,
+                     "a:A:B:dD:e:E:f:G:iJ:Il:L:mM:nN:o:OpP:r:Rt:T:uvxqh")) != -1) {
 #else
-  while ((c = getopt(argc, argv, "a:A:B:dD:e:E:f:G:Il:L:mM:nN:o:OpP:r:RT:uvxqh")) != -1) {
+  while ((c = getopt(argc, argv, "a:A:B:dD:e:E:f:G:IJ:l:L:mM:nN:o:OpP:r:Rt:T:uvxqh")) !=
+         -1) {
 #endif
 #endif
     switch (c) {
@@ -817,6 +857,12 @@ int main(int argc, char **argv) {
 #endif
     case 'I':
       Flags[3] = true;
+
+      break;
+    case 'J':
+      Flags[26] = true;
+
+      parseList(optarg);
 
       break;
     case 'l':
@@ -882,6 +928,10 @@ int main(int argc, char **argv) {
 
       break;
 #endif
+    case 't':
+      title = optarg;
+
+      break;
     case 'T':
       Flags[9] = true;
 
@@ -972,8 +1022,11 @@ int main(int argc, char **argv) {
       return 2;
     }
 
-    for (Entries::iterator it = entries.begin(); it != entries.end(); it++)
+    for (Entries::iterator it = entries.begin(); it != entries.end(); it++) {
       it->track = std::distance(entries.begin(), it) + 1;
+      if (!title.empty())
+        it->playlistTitle = title;
+    }
 
     for (const std::string &addItem : addItems) {
       Entry entry;
