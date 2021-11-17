@@ -341,9 +341,11 @@ void WritePLS(std::ofstream &file, const Entries &entries) {
 }
 
 void WriteM3U(std::ofstream &file, const Entries &entries) {
-  file << "#EXTM3U" << std::endl;
-  file << "#EXTENC:UTF-8" << std::endl;
-  file << std::endl;
+  if (!Flags[5]) {
+    file << "#EXTM3U" << std::endl;
+    file << "#EXTENC:UTF-8" << std::endl;
+    file << std::endl;
+  }
 
   for (const Entry &entry : entries) {
     if (!Flags[5]) {
