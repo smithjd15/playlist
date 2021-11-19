@@ -233,6 +233,9 @@ const Entries ParsePLS(const fs::path &playlist) {
 const Entries ParseM3U(const fs::path &playlist) {
   std::ifstream file(playlist);
   std::string line, title;
+  bool invalidExtInfo(false);
+  std::regex regex(
+      "[^\\s\"]+(?:\"[^\"]*\"[^\\s\"]*)*|(?:\"[^\"]*\"[^\\s\"]*)+");
   Entries entries;
 
   int t = 1;
@@ -248,10 +251,45 @@ const Entries ParseM3U(const fs::path &playlist) {
 
     if (line.rfind("#EXTINF:", 0) != std::string::npos) {
       std::size_t pos = line.find_first_of(",");
+      std::string info;
+      float duration;
 
-      if (pos != std::string::npos) {
-        entry.duration = std::stoi(line.substr(8, pos - 8));
-        entry.title = line.substr(pos + 1);
+      if (!invalidExtInfo)
+        invalidExtInfo = (pos > line.size());
+
+      entry.title = line.substr(pos + 1);
+
+      info = line.substr(8, pos - 8);
+      pos = info.find_first_of(' ');
+
+      duration = std::stoi(info.substr(0, pos));
+      if (duration > 0)
+        entry.duration = duration;
+
+      info = info.substr(pos + 1);
+      std::sregex_iterator it(info.begin(), info.end(), regex), end;
+
+      for (; it != end; ++it) {
+        KeyValue pair = Split(it->str());
+        std::istringstream strStream(pair.second);
+        strStream >> std::quoted(pair.second);
+
+        if (pair.first == "artist")
+          entry.artist = pair.second;
+        if (pair.first == "title")
+          entry.title = pair.second;
+        if (pair.first == "album")
+          entry.album = pair.second;
+        if (pair.first == "comment")
+          entry.comment = pair.second;
+        if (pair.first == "identifier")
+          entry.identifier = pair.second;
+        if (pair.first == "info")
+          entry.info = pair.second;
+        if (pair.first == "image")
+          entry.image = pair.second;
+        if (pair.first == "track")
+          entry.albumTrack = std::stoi(pair.second);
       }
 
       std::getline(file, line);
@@ -279,8 +317,12 @@ const Entries ParseM3U(const fs::path &playlist) {
 
   file.close();
 
-  if (file.bad())
+  if (file.bad() || invalidExtInfo) {
+    if (invalidExtInfo)
+      std::cerr << "Parse error: Invalid extended information" << std::endl;
+
     entries.clear();
+  }
 
   return entries;
 }
@@ -404,27 +446,43 @@ void WriteM3U(std::ofstream &file, const Entries &entries) {
     title = entry.playlistTitle;
 
     if (!Flags[5]) {
-      if (!entry.artist.empty() || !entry.title.empty() || entry.duration) {
-        playlist << "#EXTINF:";
-
-        if (entry.duration > 0) {
-          playlist << std::round(entry.duration) << ",";
-        } else {
-          playlist << "-1,";
-        }
-
-        if (!entry.artist.empty() || !entry.title.empty()) {
-          playlist << entry.artist;
-
-          if (!entry.artist.empty() && !entry.title.empty())
-            playlist << " - ";
-
-          playlist << entry.title;
-        }
-
-        playlist << std::endl;
+      playlist << "#EXTINF:";
+      if (entry.duration > 0) {
+        playlist << std::round(entry.duration);
+      } else {
+        playlist << "-1";
       }
+
+      if (!entry.artist.empty())
+        playlist << " artist=" << std::quoted(entry.artist);
+      if (!entry.title.empty())
+        playlist << " title=" << std::quoted(entry.title);
+      if (!entry.album.empty())
+        playlist << " album=" << std::quoted(entry.album);
+      if (!entry.comment.empty())
+        playlist << " comment=" << std::quoted(entry.comment);
+      if (!entry.identifier.empty())
+        playlist << " identifier=" << std::quoted(entry.identifier);
+      if (!entry.info.empty())
+        playlist << " info=" << std::quoted(entry.info);
+      if (!entry.image.empty())
+        playlist << " image=" << std::quoted(entry.image.string());
+      if (entry.albumTrack)
+        playlist << " track=\"" << entry.albumTrack << "\"";
+
+      playlist << ",";
     }
+
+    if (!entry.artist.empty() || !entry.title.empty()) {
+      playlist << entry.artist;
+
+      if (!entry.artist.empty() && !entry.title.empty())
+        playlist << " - ";
+
+      playlist << entry.title;
+    }
+
+    playlist << std::endl;
 
     playlist << entry.target.string() << std::endl;
 
