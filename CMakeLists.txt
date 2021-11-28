@@ -13,7 +13,12 @@ option(TAGLIB "Populate playlist metadata with taglib" ON)
 
 find_package(pugixml REQUIRED)
 
-add_executable(playlist main.cpp)
+add_executable(playlist
+               src/main.cpp
+               src/playlist.cpp
+               src/m3u.cpp
+               src/pls.cpp
+               src/xspf.cpp)
 
 target_link_libraries(playlist pugixml)
 
