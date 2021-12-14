@@ -126,49 +126,49 @@ const bool M3U::write(const List &list) {
   std::ofstream file(m_playlist);
 
   for (const Entry &entry : list.entries) {
+    std::stringstream extInf;
+
     if (!flags[5]) {
-      playList << "#EXTINF:";
+      extInf << std::endl;
+      extInf << "#EXTINF:";
       if (entry.duration > 0) {
-        playList << std::round(entry.duration);
+        extInf << std::round(entry.duration);
       } else {
-        playList << "-1";
+        extInf << "-1";
       }
 
       if (!entry.album.empty())
-        playList << " album=" << std::quoted(entry.album);
+        extInf << " album=" << std::quoted(entry.album);
       if (!entry.artist.empty())
-        playList << " artist=" << std::quoted(entry.artist);
+        extInf << " artist=" << std::quoted(entry.artist);
       if (!entry.comment.empty())
-        playList << " comment=" << std::quoted(entry.comment);
+        extInf << " comment=" << std::quoted(entry.comment);
       if (!entry.identifier.empty())
-        playList << " identifier=" << std::quoted(entry.identifier);
+        extInf << " identifier=" << std::quoted(entry.identifier);
       if (!entry.image.empty())
-        playList << " image=" << std::quoted(entry.image.string());
+        extInf << " image=" << std::quoted(entry.image.string());
       if (!entry.info.empty())
-        playList << " info=" << std::quoted(entry.info);
+        extInf << " info=" << std::quoted(entry.info);
       if (!entry.title.empty())
-        playList << " title=" << std::quoted(entry.title);
+        extInf << " title=" << std::quoted(entry.title);
       if (entry.albumTrack)
-        playList << " track=\"" << entry.albumTrack << "\"";
+        extInf << " track=\"" << entry.albumTrack << "\"";
 
-      playList << ",";
+      extInf << ",";
+
+      if (!entry.artist.empty() || !entry.title.empty()) {
+        extInf << entry.artist;
+
+        if (!entry.artist.empty() && !entry.title.empty())
+          extInf << " - ";
+
+        extInf << entry.title;
+      }
+
+      playList << extInf.rdbuf() << std::endl;
     }
-
-    if (!entry.artist.empty() || !entry.title.empty()) {
-      playList << entry.artist;
-
-      if (!entry.artist.empty() && !entry.title.empty())
-        playList << " - ";
-
-      playList << entry.title;
-    }
-
-    playList << std::endl;
 
     playList << entry.target.string() << std::endl;
-
-    if (!flags[5] && (entry.track != (int)list.entries.size()))
-      playList << std::endl;
   }
 
   if (!flags[5]) {
@@ -178,7 +178,6 @@ const bool M3U::write(const List &list) {
       file << "#PLAYLIST:" << list.title << std::endl;
     if (!list.image.empty())
       file << "#EXTIMG:" << list.image.string() << std::endl;
-    file << std::endl;
   }
 
   file << playList.rdbuf();
