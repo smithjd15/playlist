@@ -554,7 +554,7 @@ void ShowHelp() {
   std::cout << "\t-a Append entry" << std::endl;
   std::cout << "\t-r Remove entry (same as -e track:ta=)" << std::endl;
   std::cout << "\t-e Change entry" << std::endl;
-  std::cout << "\t-d Remove duplicate targets from out playlist" << std::endl;
+  std::cout << "\t-d Remove duplicate entries from out playlist" << std::endl;
   std::cout << "\t-u Remove unfound targets from out playlist" << std::endl;
   std::cout << "\t-n Out playlist targets in random order" << std::endl;
   std::cout << "\t-m Minimal out playlist (targets only)" << std::endl;
@@ -673,14 +673,21 @@ int main(int argc, char **argv) {
 
   auto find = [](const Entry &entry, const Entries &entries,
                  bool sameList = true) {
-    return std::find_if(entries.begin(), entries.end(),
-                        [&entry, &sameList](const Entry &e) {
-                          if (!sameList && (entry.playlist == e.playlist))
-                            return false;
+    return std::find_if(
+        entries.begin(), entries.end(), [&entry, &sameList](const Entry &e) {
+          if (!sameList && (entry.playlist == e.playlist))
+            return false;
 
-                          return (fs::weakly_canonical(entry.target.string()) ==
-                                  fs::weakly_canonical(e.target.string()));
-                        });
+          if (fs::weakly_canonical(entry.target.string()) ==
+              fs::weakly_canonical(e.target.string()))
+            return true;
+
+          if (!entry.artist.empty() && !entry.title.empty())
+            if ((entry.artist == e.artist) && (entry.title == e.title))
+              return true;
+
+          return false;
+        });
   };
 
   auto groupTargetItems = [&](const Entries &entries) {
