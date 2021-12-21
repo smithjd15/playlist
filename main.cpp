@@ -628,18 +628,18 @@ void ShowHelp() {
   std::cout << std::endl;
   std::cout << "Usage: playlist [-l|-L|-P|-J|-K|-A|-T|-M|-E|-D|-G|-N "
                "all|dupe|net|unfound|unique] [-p] [-f path] "
-               "[[-O|-I]|[-R|-B path]] [-a target] [-r track] "
+               "[[-O|-I]|[-R|-B path]] [-a target] [-e track:FIELD=value] "
 #ifdef LIBCURL
 #ifdef TAGLIB
-               "[-e track:FIELD=value] [-s] [-i] [-d] [-u] [-n] [-m] "
+               "[-r track] [-s] [-i] [-d] [-u] [-n] [-m] "
 #else
-               "[-e track:FIELD=value] [-s] [-d] [-u] [-n] [-m] "
+               "[-r track] [-s] [-d] [-u] [-n] [-m] "
 #endif
 #else
 #ifdef TAGLIB
-               "[-e track:FIELD=value] [-i] [-d] [-u] [-n] [-m] "
+               "[-r track] [-i] [-d] [-u] [-n] [-m] "
 #else
-               "[-e track:FIELD=value] [-d] [-u] [-n] [-m] "
+               "[-r track] [-d] [-u] [-n] [-m] "
 #endif
 #endif
                "[-t title] [-g target] [-q] [-v] [-x] [-o outfile.ext] "
@@ -673,11 +673,11 @@ void ShowHelp() {
   std::cout << "\t-t Set title for out playlist" << std::endl;
   std::cout << "\t-g Set image for out playlist" << std::endl;
   std::cout << "\t-a Append entry" << std::endl;
+  std::cout << "\t-e track:FIELD=value Set entry field" << std::endl;
   std::cout << "\t-r Remove entry (same as -e track:ta=)" << std::endl;
-  std::cout << "\t-e Change entry" << std::endl;
   std::cout << "\t-d Remove duplicate entries from out playlist" << std::endl;
-  std::cout << "\t-u Remove unfound targets from out playlist" << std::endl;
-  std::cout << "\t-n Out playlist targets in random order" << std::endl;
+  std::cout << "\t-u Remove unfound target entries from out playlist" << std::endl;
+  std::cout << "\t-n Out playlist entries in random order" << std::endl;
   std::cout << "\t-m Minimal out playlist (targets only)" << std::endl;
 #ifdef LIBCURL
   std::cout << "\t-s Verify network targets" << std::endl;
@@ -700,7 +700,7 @@ void ShowHelp() {
   std::cout << std::endl;
   std::cout << "Exit codes:" << std::endl;
   std::cout << "0: Success or quiet flag" << std::endl;
-  std::cout << "1: Out playlist has unfound targets; or a dupe or unfound "
+  std::cout << "1: Out playlist has unfound target entries; or a dupe or unfound "
                "list contains at least one entry"
             << std::endl;
   std::cout << "2: IO, parse, or command line error" << std::endl;
