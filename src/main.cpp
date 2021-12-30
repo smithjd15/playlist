@@ -66,7 +66,8 @@ void help() {
   std::cout << "\t-D LIST Identifiers and targets" << std::endl;
   std::cout << "\t-G LIST Image and targets" << std::endl;
   std::cout << "\t-N LIST Info and targets" << std::endl;
-  std::cout << "\t-p Same as -l all" << std::endl;
+  std::cout << "\t-p List all targets in absolute paths (same as -O -l all)"
+            << std::endl;
   std::cout << std::endl;
   std::cout << "\t-x Preview changes (with -o)" << std::endl;
   std::cout << "\t-f In playlist relative local target base path" << std::endl;
@@ -278,6 +279,9 @@ int main(int argc, char **argv) {
     case 'p':
       flags[14] = true;
       flags[4] = true;
+      flags[0] = true;
+      flags[11] = true;
+      list.playlist = fs::temp_directory_path() /= "playlisttargets.m3u";
 
       break;
     case 'P':
