@@ -27,7 +27,7 @@
 
 #include "unistd.h"
 
-#define VER 1.41
+#define VER 1.42
 
 #define PLS_SECTION "[playlist]"
 #define PLS_VERSION 2
@@ -472,8 +472,7 @@ void ShowPlaylist(const Entries &entries) {
 }
 
 void ShowHelp() {
-  std::cout << "playlist version " << std::fixed << std::setprecision(1) << VER
-            << std::endl;
+  std::cout << "playlist version " << VER << std::endl;
   std::cout << "Copyright (C) 2021, 2022 James D. Smith" << std::endl;
   std::cout << std::endl;
   std::cout << "Usage: playlist [-l|-L|-D|-T|-P all|dupe|net|unfound|unique] "
