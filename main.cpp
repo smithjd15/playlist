@@ -477,7 +477,7 @@ void ShowHelp() {
   std::cout << "Copyright (C) 2021 James D. Smith" << std::endl;
   std::cout << std::endl;
   std::cout << "Usage: playlist [-l|-L|-D|-T|-P all|dupe|net|unfound|unique] "
-               "[-p] [-f path] [[-C|-I]|[-R|-B path]] [-a target] [-r track] "
+               "[-p] [-f path] [[-O|-I]|[-R|-B path]] [-a target] [-r track] "
                "[-e track:ta(rget)|ti(tle)|du(ration)=value] [-d] [-u] [-n] "
                "[-m] [-q] [-v] [-x] [-o outfile.ext] infile..."
             << std::endl;
@@ -496,8 +496,8 @@ void ShowHelp() {
   std::cout << "\t-R Out playlist targets relative to out playlist"
             << std::endl;
   std::cout << "\t-B Out playlist targets base path" << std::endl;
-  std::cout << "\t-C Out playlist targets in canonical paths" << std::endl;
-  std::cout << "\t-I Out playlist local targets in file URI scheme (implied -C)"
+  std::cout << "\t-O Out playlist targets in absolute paths" << std::endl;
+  std::cout << "\t-I Out playlist local targets in file URI scheme (implied -O)"
             << std::endl;
   std::cout << "\t-a Append entry" << std::endl;
   std::cout << "\t-r Remove entry (same as -e track:ta=)" << std::endl;
@@ -620,7 +620,7 @@ int main(int argc, char **argv) {
   };
 
   int c;
-  while ((c = getopt(argc, argv, "a:B:CdD:e:f:Il:L:mno:pP:r:RT:uvxqh")) != -1) {
+  while ((c = getopt(argc, argv, "a:B:dD:e:f:Il:L:mno:OpP:r:RT:uvxqh")) != -1) {
     switch (c) {
     case 'a':
       addItems.emplace_back(optarg);
@@ -628,10 +628,6 @@ int main(int argc, char **argv) {
       break;
     case 'B':
       base = getPath(fs::current_path(), optarg);
-
-      break;
-    case 'C':
-      Flags[0] = true;
 
       break;
     case 'd':
@@ -676,6 +672,10 @@ int main(int argc, char **argv) {
       break;
     case 'o':
       outPl = getPath(fs::current_path(), optarg);
+
+      break;
+    case 'O':
+      Flags[0] = true;
 
       break;
     case 'p':
@@ -772,7 +772,7 @@ int main(int argc, char **argv) {
 
     if ((Flags[0] && Flags[8]) || (Flags[0] && !base.empty()) ||
         (Flags[3] && Flags[8]) || (Flags[3] && !base.empty())) {
-      std::cerr << "Cannot combine canonical and relative path transforms"
+      std::cerr << "Cannot combine absolute and relative path transforms"
                 << std::endl;
 
       return 2;
