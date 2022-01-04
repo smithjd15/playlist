@@ -1,5 +1,5 @@
 /* playlist for media playlist files
- * Copyright (C) 2021 James D. Smith
+ * Copyright (C) 2021, 2022 James D. Smith
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@
 
 #include "unistd.h"
 
-#define VER 1.4
+#define VER 1.41
 
 #define PLS_SECTION "[playlist]"
 #define PLS_VERSION 2
@@ -474,7 +474,7 @@ void ShowPlaylist(const Entries &entries) {
 void ShowHelp() {
   std::cout << "playlist version " << std::fixed << std::setprecision(1) << VER
             << std::endl;
-  std::cout << "Copyright (C) 2021 James D. Smith" << std::endl;
+  std::cout << "Copyright (C) 2021, 2022 James D. Smith" << std::endl;
   std::cout << std::endl;
   std::cout << "Usage: playlist [-l|-L|-D|-T|-P all|dupe|net|unfound|unique] "
                "[-p] [-f path] [[-O|-I]|[-R|-B path]] [-a target] [-r track] "
