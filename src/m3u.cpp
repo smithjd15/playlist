@@ -128,7 +128,7 @@ const bool M3U::write(const List &list) {
   for (const Entry &entry : list.entries) {
     std::stringstream extInf;
 
-    if (!flags[5]) {
+    if (!fs::is_fifo(m_playlist) && !flags[5]) {
       extInf << std::endl;
       extInf << "#EXTINF:";
       if (entry.duration > 0) {
@@ -171,7 +171,7 @@ const bool M3U::write(const List &list) {
     playList << entry.target.string() << std::endl;
   }
 
-  if (!flags[5]) {
+  if (!fs::is_fifo(m_playlist) && !flags[5]) {
     file << "#EXTM3U" << std::endl;
     file << "#EXTENC:UTF-8" << std::endl;
     if (!list.title.empty())
