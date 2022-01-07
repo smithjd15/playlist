@@ -112,9 +112,9 @@ void help() {
   std::cout << "Exit codes:" << std::endl;
   std::cout << "0: Success or quiet flag" << std::endl;
   std::cout
-      << "1: Out playlist has unfound target entries or image targets; or a "
-         "dupe or unfound list contains at least one entry; or an in playlist "
-         "was not found"
+      << "1: Out playlist has unfound target entries or image targets; or "
+         "multiple images; or a dupe or unfound list contains at least one "
+         "entry; or an in playlist was not found"
 #ifdef TAGLIB
          "; or metadata could not be read from a target"
 #endif
@@ -123,7 +123,7 @@ void help() {
 }
 
 int main(int argc, char **argv) {
-  fs::path base, prepend;
+  fs::path base, image, prepend;
   List list;
   std::vector<std::string> addItems, changeItems;
 
@@ -215,7 +215,7 @@ int main(int argc, char **argv) {
 
       break;
     case 'g':
-      list.image = fs::path(optarg);
+      image = fs::path(optarg);
 
       break;
     case 'G':
@@ -378,6 +378,19 @@ int main(int argc, char **argv) {
       valid = validTarget(absPath(it->playlist.parent_path(), target));
     };
 
+    if (!it->playlistImage.empty()) {
+      fs::path plImage = processUri(it->playlistImage.string());
+
+      if (list.image.empty() || (plImage != list.image))
+        list.images++;
+
+      if (list.image.empty() || (!list.validImage && (plImage != list.image))) {
+        list.image = it->playlistImage;
+
+        computeTargets(list.image, list.localImage, list.validImage);
+      }
+    }
+
     computeTargets(it->target, it->localTarget, it->validTarget);
 
     if (!it->image.empty())
@@ -423,8 +436,13 @@ int main(int argc, char **argv) {
       it->track = std::distance(list.entries.begin(), it) + 1;
       if (!list.title.empty())
         it->playlistTitle = list.title;
-      if (!list.image.empty())
-        it->playlistImage = list.image;
+    }
+
+    if (!image.empty()) {
+      list.image = image;
+      list.localImage = localTarget(list.image.string());
+      list.validImage = validTarget(list.image);
+      list.images = !image.empty();
     }
 
     for (const std::string &addItem : addItems) {
@@ -537,6 +555,13 @@ int main(int argc, char **argv) {
       it++;
     }
 
+    if (!list.image.empty())
+      if (list.localImage) {
+        transformPath(list.playlist.parent_path(), list.image);
+        list.validImage = fs::exists(
+            absPath(list.playlist.parent_path(), processUri(list.image)));
+      }
+
     if (!base.empty() || flags[8])
       list.relative = (!base.empty() || flags[8]);
 
@@ -578,6 +603,13 @@ int main(int argc, char **argv) {
     if (list.unfoundImages > 0)
       cwar << "WARNING: out playlist has " << list.unfoundImages
            << " unfound entry image target(s)" << std::endl;
+
+    if (!list.image.empty() && !list.validImage)
+      cwar << "WARNING: out playlist image not found" << std::endl;
+
+    if (list.images > 1)
+      cwar << "WARNING: 1 of " << list.images
+           << " playlist images auto-selected" << std::endl;
 
     if (flags[11]) {
       show(list);

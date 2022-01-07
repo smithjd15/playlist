@@ -53,7 +53,7 @@ void show(const List &list) {
   uint size(0);
   time_t duration;
   tm *dur;
-  std::string totalDur;
+  std::string totalDur, totalImages;
 
   std::cout << "Track"
             << "\tStatus"
@@ -104,6 +104,9 @@ void show(const List &list) {
               << title << "\t" << target << std::endl;
   }
 
+  if (list.localImage && list.validImage)
+    size += fs::file_size(list.image);
+
   size = size / 1024 / 1024;
 
   duration = totalDuration;
@@ -119,6 +122,9 @@ void show(const List &list) {
   totalDur += std::to_string(dur->tm_sec) + " seconds";
   totalDur += ")";
 
+  if (list.images > 1)
+    totalImages = " (of " + std::to_string(list.images) + "!)";
+
   std::cout << std::endl;
   std::cout << "[n]etwork images: " << list.netImages
             << "\t[u]nfound images: " << list.unfoundImages << std::endl;
@@ -128,7 +134,7 @@ void show(const List &list) {
             << "\tTotal: " << list.entries.size() << std::endl;
   std::cout << std::endl;
   std::cout << "Known title: " << list.title << std::endl;
-  std::cout << "Known image: " << list.image.string() << std::endl;
+  std::cout << "Known image: " << list.image.string() << totalImages << std::endl;
   std::cout << "Total known duration: " << totalDuration << " seconds "
             << totalDur << std::endl;
   std::cout << "Total known disk used: " << size << " MB" << std::endl;
