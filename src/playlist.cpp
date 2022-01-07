@@ -70,6 +70,14 @@ void show(const List &list) {
                 status;
     float duration = (!entry.validTarget && flags[11]) ? 0 : entry.duration;
 
+    if (!entry.image.empty()) {
+      if (!entry.localImage)
+        status += "n";
+
+      if (!entry.validImage)
+        status += "u";
+    }
+
     if (entry.duplicateTarget)
       status += "D";
 
@@ -79,12 +87,15 @@ void show(const List &list) {
     if (!entry.validTarget)
       status += "U";
 
+    if (status.empty())
+      status = "*";
+
     if (entry.localTarget && entry.validTarget)
       size +=
           fs::file_size(absPath(entry.playlist.parent_path(), entry.target));
 
-    if (!entry.duplicateTarget && entry.localTarget && entry.validTarget)
-      status = "*";
+    if (entry.localImage && entry.validImage)
+      size += fs::file_size(absPath(entry.playlist.parent_path(), entry.image));
 
     if (duration > 0)
       totalDuration += entry.duration;
@@ -109,6 +120,8 @@ void show(const List &list) {
   totalDur += ")";
 
   std::cout << std::endl;
+  std::cout << "[n]etwork images: " << list.netImages
+            << "\t[u]nfound images: " << list.unfoundImages << std::endl;
   std::cout << "[D]upe: " << list.dupeTargets
             << "\t[N]etwork: " << list.netTargets
             << "\t[U]nfound: " << list.unfoundTargets
@@ -122,7 +135,8 @@ void show(const List &list) {
 }
 
 void list(const List &list) {
-  std::vector<KeyValue> all, dupe, network, unfound, unique;
+  std::vector<KeyValue> all, dupe, image, network, netImg, unfound, unfoundImg,
+      unique;
 
   const auto targetItem = [](const Entry &entry) {
     if (flags[7])
@@ -150,7 +164,7 @@ void list(const List &list) {
       return KeyValue(entry.identifier, entry.target.string());
 
     if (flags[23])
-      return KeyValue(entry.image, entry.target.string());
+      return KeyValue(entry.image.string(), entry.target.string());
 
     if (flags[24])
       return KeyValue(entry.info, entry.target.string());
@@ -182,6 +196,16 @@ void list(const List &list) {
     if (find(*it, list.entries, false) == list.entries.end())
       unique.push_back(targetItem(*it));
 
+    if (!it->image.empty()) {
+      if (!it->localImage)
+        netImg.push_back(targetItem(*it));
+
+      if (!it->validImage)
+        unfoundImg.push_back(targetItem(*it));
+
+      image.push_back(targetItem(*it));
+    }
+
     all.push_back(targetItem(*it));
   }
 
@@ -193,14 +217,26 @@ void list(const List &list) {
     listTargetItems(dupe);
 
     std::exit(!flags[13] ? !dupe.empty() : 0);
+  } else if (flags[30]) {
+    listTargetItems(image);
+
+    std::exit(0);
   } else if (flags[16]) {
     listTargetItems(network);
+
+    std::exit(0);
+  } else if (flags[28]) {
+    listTargetItems(netImg);
 
     std::exit(0);
   } else if (flags[17]) {
     listTargetItems(unfound);
 
     std::exit(!flags[13] ? !unfound.empty() : 0);
+  } else if (flags[29]) {
+    listTargetItems(unfoundImg);
+
+    std::exit(!flags[13] ? !unfoundImg.empty() : 0);
   } else if (flags[18]) {
     listTargetItems(unique);
 

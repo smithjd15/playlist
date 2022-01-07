@@ -34,8 +34,9 @@ void help() {
   std::cout << "Copyright (C) 2021, 2022 James D. Smith" << std::endl;
   std::cout << std::endl;
   std::cout << "Usage: playlist [-l|-L|-P|-J|-K|-A|-T|-M|-E|-D|-G|-N "
-               "all|dupe|net|unfound|unique] [-p] [-f path] "
-               "[[-O|-I]|[-R|-B path]] [-a target] [-e track:FIELD=value] "
+               "all|dupe|image|net|netimg|unfound|unfoundimg|unique] [-p] "
+               "[-f path] [[-O|-I]|[-R|-B path]] [-a target] "
+               "[-e track:FIELD=value] "
 #ifdef LIBCURL
 #ifdef TAGLIB
                "[-r track] [-s] [-i] [-d] [-u] [-n] [-m] "
@@ -104,15 +105,16 @@ void help() {
          "(co)mment, (id)entifier, (im)age, (in)fo, album (tr)ack, (du)ration"
       << std::endl;
   std::cout << std::endl;
-  std::cout << "LIST can be one of: all, dupe, net, unfound, or unique "
-               "(multiple infiles)"
+  std::cout << "LIST can be one of: all, dupe, image, net, netimg, unfound, "
+               "unfoundimg, or unique (multiple infiles)"
             << std::endl;
   std::cout << std::endl;
   std::cout << "Exit codes:" << std::endl;
   std::cout << "0: Success or quiet flag" << std::endl;
   std::cout
-      << "1: Out playlist has unfound target entries; or a dupe or unfound "
-         "list contains at least one entry; or an in playlist was not found"
+      << "1: Out playlist has unfound target entries or image targets; or a "
+         "dupe or unfound list contains at least one entry; or an in playlist "
+         "was not found"
 #ifdef TAGLIB
          "; or metadata could not be read from a target"
 #endif
@@ -128,8 +130,11 @@ int main(int argc, char **argv) {
   auto parseList = [](const std::string &arg) {
     flags[14] = (arg == "all");
     flags[15] = (arg == "dupe");
+    flags[30] = (arg == "image");
     flags[16] = (arg == "net");
+    flags[28] = (arg == "netimg");
     flags[17] = (arg == "unfound");
+    flags[29] = (arg == "unfoundimg");
     flags[18] = (arg == "unique");
   };
 
@@ -375,6 +380,9 @@ int main(int argc, char **argv) {
 
     computeTargets(it->target, it->localTarget, it->validTarget);
 
+    if (!it->image.empty())
+      computeTargets(it->image, it->localImage, it->validImage);
+
     if (it->localTarget) {
 #ifdef TAGLIB
       if (it->validTarget && flags[25])
@@ -461,7 +469,9 @@ int main(int argc, char **argv) {
         } else if (key == "id") {
           entry.identifier = value;
         } else if (key == "im") {
-          entry.image = value;
+          entry.image = processUri(value);
+          entry.localImage = localTarget(entry.image.string());
+          entry.validImage = validTarget(entry.image);
         } else if (key == "in") {
           entry.info = value;
         } else if (key == "tr") {
@@ -514,6 +524,14 @@ int main(int argc, char **argv) {
             absPath(list.playlist.parent_path(), processUri(it->target)));
       }
 
+      if (!it->image.empty()) {
+        if (it->localImage) {
+          transformPath(it->playlist.parent_path(), it->image);
+          it->validImage = fs::exists(
+              absPath(list.playlist.parent_path(), processUri(it->image)));
+        }
+      }
+
       it->playlist = list.playlist;
 
       it++;
@@ -537,19 +555,29 @@ int main(int argc, char **argv) {
     return 2;
   }
 
-  if (flags[14] || flags[15] || flags[16] || flags[17] || flags[18])
+  if (flags[14] || flags[15] || flags[16] || flags[17] || flags[18] ||
+      flags[28] || flags[29] || flags[30])
     ::list(list);
 
   for (const Entry &entry : list.entries) {
     list.dupeTargets += entry.duplicateTarget;
     list.netTargets += !entry.localTarget;
     list.unfoundTargets += !entry.validTarget;
+
+    if (!entry.image.empty()) {
+      list.netImages += !entry.localImage;
+      list.unfoundImages += !entry.validImage;
+    }
   }
 
   if (!list.playlist.empty()) {
     if (list.unfoundTargets > 0)
       cwar << "WARNING: out playlist has " << list.unfoundTargets
            << " unfound entry target(s)" << std::endl;
+
+    if (list.unfoundImages > 0)
+      cwar << "WARNING: out playlist has " << list.unfoundImages
+           << " unfound entry image target(s)" << std::endl;
 
     if (flags[11]) {
       show(list);
