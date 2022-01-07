@@ -85,7 +85,8 @@ void help() {
   std::cout << "\t-e track:FIELD=value Set entry field" << std::endl;
   std::cout << "\t-r Remove entry (same as -e track:ta=)" << std::endl;
   std::cout << "\t-d Remove duplicate entries from out playlist" << std::endl;
-  std::cout << "\t-u Remove unfound target entries from out playlist"
+  std::cout << "\t-u Remove unfound target entries and image targets from out "
+               "playlist"
             << std::endl;
   std::cout << "\t-n Out playlist entries in random order" << std::endl;
   std::cout << "\t-m Minimal out playlist (targets only)" << std::endl;
@@ -543,7 +544,9 @@ int main(int argc, char **argv) {
       }
 
       if (!it->image.empty()) {
-        if (it->localImage) {
+        if (!it->validImage && flags[10]) {
+          it->image.clear();
+        } else if (it->localImage) {
           transformPath(it->playlist.parent_path(), it->image);
           it->validImage = fs::exists(
               absPath(list.playlist.parent_path(), processUri(it->image)));
@@ -555,12 +558,17 @@ int main(int argc, char **argv) {
       it++;
     }
 
-    if (!list.image.empty())
-      if (list.localImage) {
-        transformPath(list.playlist.parent_path(), list.image);
-        list.validImage = fs::exists(
-            absPath(list.playlist.parent_path(), processUri(list.image)));
+    if (!list.image.empty()) {
+      if (!list.validImage && flags[10]) {
+        list.image.clear();
+      } else {
+        if (list.localImage) {
+          transformPath(list.playlist.parent_path(), list.image);
+          list.validImage = fs::exists(
+              absPath(list.playlist.parent_path(), processUri(list.image)));
+        }
       }
+    }
 
     if (!base.empty() || flags[8])
       list.relative = (!base.empty() || flags[8]);
