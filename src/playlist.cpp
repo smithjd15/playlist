@@ -17,6 +17,7 @@
 
 #include "playlist.h"
 
+#include "jspf.h"
 #include "m3u.h"
 #include "pls.h"
 #include "xspf.h"
@@ -352,7 +353,9 @@ Playlist *playlist(const fs::path &playlist) {
   std::transform(extension.begin(), extension.end(), extension.begin(),
                  [](const char &c) { return std::tolower(c); });
 
-  if (extension == ".m3u") {
+  if (extension == ".jspf") {
+    return new JSPF(playlist);
+  } else if (extension == ".m3u") {
     return new M3U(playlist);
   } else if (extension == ".pls") {
     return new PLS(playlist);

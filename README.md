@@ -2,7 +2,7 @@
 
 Playlist is a tool for media playlist files. It can convert between common playlist formats; identify unfound, duplicate, network, and unique (between multiple playlists) entries; concatenate multiple playlists; remove duplicate and unfound entries; randomize entry order; append and remove entries; change and remove metadata; get metadata from local targets; and transform local targets into absolute paths, or paths relative to the out playlist or any arbitrary path.
 
-Playlist supports the common title and duration metadata for m3u, pls, and xspf, and also creator (artist), album, annotation (comment), identifier, image, info, and album track for m3u and xspf. It also supports m3u and xspf playlist title and image.
+Playlist supports the common title and duration metadata for m3u, pls, and xspf/jspf, and also creator (artist), album, annotation (comment), identifier, image, info, and album track for m3u and xspf/jspf. It also supports m3u and xspf/jspf playlist title and image.
 
 ### Inspect
 #### Playlist can list all or certain targets, and provide an entry overview and summary.
@@ -60,7 +60,7 @@ playlist -x -u -R -o foo/outlist.m3u inlist.m3u
 playlist -L all -x -u -R -o bar/outlist.m3u inlist.m3u
 
 ### Convert
-#### Playlist can convert between m3u, pls and xspf formats.
+#### Playlist can convert between m3u, pls, xspf and jspf formats.
 
 ##### Example converting an m3u to an xspf:
 
@@ -130,10 +130,10 @@ playlist -n -o outlist.m3u inlist.m3u
 
 playlist -o outlist.m3u inlist.m3u appendlist.pls
 
-##### Example setting a playlist title (m3u or xspf):
+##### Example setting a playlist title (m3u or xspf/jspf):
 
 playlist -t "Some Title" -o outlist.xspf inlist.xspf
 
-##### Example setting a playlist image (m3u or xspf):
+##### Example setting a playlist image (m3u or xspf/jspf):
 
 playlist -g "/foo/bar/image.ext" -o outlist.xspf inlist.xspf

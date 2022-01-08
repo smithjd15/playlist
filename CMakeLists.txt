@@ -12,15 +12,17 @@ option(LIBCURL "Verify links with libcurl" ON)
 option(TAGLIB "Populate playlist metadata with taglib" ON)
 
 find_package(pugixml REQUIRED)
+find_package(RapidJSON REQUIRED)
 
 add_executable(playlist
                src/main.cpp
                src/playlist.cpp
+               src/jspf.cpp
                src/m3u.cpp
                src/pls.cpp
                src/xspf.cpp)
 
-target_link_libraries(playlist pugixml)
+target_link_libraries(playlist pugixml RapidJSON)
 
 if(LIBCURL)
   find_package(CURL)
