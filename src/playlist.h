@@ -63,6 +63,7 @@ struct List {
   int images = 0;
   int netImages = 0;
   int netTargets = 0;
+  int titles = 0;
   int unfoundImages = 0;
   int unfoundTargets = 0;
   bool localImage = false;

@@ -53,7 +53,7 @@ void show(const List &list) {
   uint size(0);
   time_t duration;
   tm *dur;
-  std::string totalDur, totalImages;
+  std::string totalDur, totalImages, totalTitles;
 
   std::cout << "Track"
             << "\tStatus"
@@ -125,6 +125,9 @@ void show(const List &list) {
   if (list.images > 1)
     totalImages = " (of " + std::to_string(list.images) + "!)";
 
+  if (list.titles > 1)
+    totalTitles = " (of " + std::to_string(list.titles) + "!)";
+
   std::cout << std::endl;
   std::cout << "[n]etwork images: " << list.netImages
             << "\t[u]nfound images: " << list.unfoundImages << std::endl;
@@ -133,7 +136,7 @@ void show(const List &list) {
             << "\t[U]nfound: " << list.unfoundTargets
             << "\tTotal: " << list.entries.size() << std::endl;
   std::cout << std::endl;
-  std::cout << "Known title: " << list.title << std::endl;
+  std::cout << "Known title: " << list.title << totalTitles << std::endl;
   std::cout << "Known image: " << list.image.string() << totalImages << std::endl;
   std::cout << "Total known duration: " << totalDuration << " seconds "
             << totalDur << std::endl;

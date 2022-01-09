@@ -114,8 +114,8 @@ void help() {
   std::cout << "0: Success or quiet flag" << std::endl;
   std::cout
       << "1: Out playlist has unfound target entries or image targets; or "
-         "multiple images; or a dupe or unfound list contains at least one "
-         "entry; or an in playlist was not found"
+         "multiple images or titles; or a dupe or unfound list contains at "
+         "least one entry; or an in playlist was not found"
 #ifdef TAGLIB
          "; or metadata could not be read from a target"
 #endif
@@ -125,6 +125,7 @@ void help() {
 
 int main(int argc, char **argv) {
   fs::path base, image, prepend;
+  std::string title;
   List list;
   std::vector<std::string> addItems, changeItems;
 
@@ -314,7 +315,7 @@ int main(int argc, char **argv) {
       break;
 #endif
     case 't':
-      list.title = optarg;
+      title = optarg;
 
       break;
     case 'T':
@@ -392,6 +393,14 @@ int main(int argc, char **argv) {
       }
     }
 
+    if (!it->playlistTitle.empty()) {
+      if (list.title.empty() || (it->playlistTitle != list.title))
+        list.titles++;
+
+      if (list.title.empty())
+        list.title = it->playlistTitle;
+    }
+
     computeTargets(it->target, it->localTarget, it->validTarget);
 
     if (!it->image.empty())
@@ -433,17 +442,19 @@ int main(int argc, char **argv) {
     }
 
     for (Entries::iterator it = list.entries.begin(); it != list.entries.end();
-         it++) {
+         it++)
       it->track = std::distance(list.entries.begin(), it) + 1;
-      if (!list.title.empty())
-        it->playlistTitle = list.title;
-    }
 
     if (!image.empty()) {
       list.image = image;
       list.localImage = localTarget(list.image.string());
       list.validImage = validTarget(list.image);
       list.images = !image.empty();
+    }
+
+    if (!title.empty()) {
+      list.title = title;
+      list.titles = !title.empty();
     }
 
     for (const std::string &addItem : addItems) {
@@ -618,6 +629,10 @@ int main(int argc, char **argv) {
     if (list.images > 1)
       cwar << "WARNING: 1 of " << list.images
            << " playlist images auto-selected" << std::endl;
+
+    if (list.titles > 1)
+      cwar << "WARNING: 1 of " << list.titles
+           << " playlist titles auto-selected" << std::endl;
 
     if (flags[11]) {
       show(list);
