@@ -46,6 +46,7 @@
 namespace fs = std::filesystem;
 
 Flags flags;
+std::stringstream cwar;
 
 void show(const List &list) {
   int totalDuration(0);
@@ -219,8 +220,8 @@ void fetchMetadata(Entry &entry) {
     entry.comment = file.tag()->comment().toCString();
     entry.duration = file.audioProperties()->lengthInSeconds();
     entry.title = file.tag()->title().toCString();
-  } else if (!flags[13]) {
-    std::cerr << "Could not read target tag: " << entry.target << std::endl;
+  } else {
+    cwar << "Could not read target tag: " << entry.target << std::endl;
   }
 }
 #endif

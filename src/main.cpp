@@ -112,7 +112,10 @@ void help() {
   std::cout << "0: Success or quiet flag" << std::endl;
   std::cout
       << "1: Out playlist has unfound target entries; or a dupe or unfound "
-         "list contains at least one entry"
+         "list contains at least one entry; or an in playlist was not found"
+#ifdef TAGLIB
+         "; or metadata could not be read from a target"
+#endif
       << std::endl;
   std::cout << "2: IO, parse, or command line error" << std::endl;
 }
@@ -348,17 +351,13 @@ int main(int argc, char **argv) {
     if (fs::exists(inPl)) {
       playlist(inPl)->parse(entries);
 
-      if (entries.empty())
-        std::cerr << "Playlist parse or other read error: " << inPl
-                  << std::endl;
-
       if (flags[12])
         std::cout << "Parsed " << entries.size() << " entries"
                   << " from playlist file: " << inPl << std::endl;
 
       list.entries.insert(list.entries.end(), entries.begin(), entries.end());
     } else {
-      std::cerr << "Skipping unfound file: " << inPl << std::endl;
+      cwar << "Skipping unfound file: " << inPl << std::endl;
     }
   }
 
@@ -529,7 +528,10 @@ int main(int argc, char **argv) {
   }
 
   if (list.entries.empty()) {
+    if ((cwar.rdbuf()->in_avail() != 0) && !flags[13])
+      std::cerr << cwar.rdbuf();
     std::cerr << "Nothing to do!" << std::endl;
+
     std::cout << "playlist -h for usage information" << std::endl;
 
     return 2;
@@ -544,25 +546,32 @@ int main(int argc, char **argv) {
     list.unfoundTargets += !entry.validTarget;
   }
 
-  if (!list.playlist.empty() && !flags[11]) {
-    if ((list.unfoundTargets > 0) && !flags[13] && !flags[10])
-      std::cout << "WARNING: out playlist has " << list.unfoundTargets
-                << " unfound target(s)" << std::endl;
+  if (!list.playlist.empty()) {
+    if (list.unfoundTargets > 0)
+      cwar << "WARNING: out playlist has " << list.unfoundTargets
+           << " unfound entry target(s)" << std::endl;
 
-    if (playlist(list.playlist)->write(list)) {
-      if (flags[12])
-        std::cout << "Playlist successfully written: " << list.playlist
-                  << std::endl;
+    if (flags[11]) {
+      show(list);
     } else {
-      std::cerr << "Write fail: " << list.playlist << std::endl;
+      if (playlist(list.playlist)->write(list)) {
+        if (flags[12])
+          std::cout << "Playlist successfully written: " << list.playlist
+                    << std::endl;
+      } else {
+        std::cerr << "Write fail: " << list.playlist << std::endl;
 
-      return 2;
+        return 2;
+      }
     }
   } else {
     show(list);
   }
 
-  return (!list.playlist.empty() && !flags[11]) && !flags[13]
-             ? (list.unfoundTargets > 0)
-             : 0;
+  const bool cwarEmpty = (cwar.rdbuf()->in_avail() == 0);
+
+  if (!cwarEmpty && !flags[13])
+    std::cerr << cwar.rdbuf();
+
+  return !flags[13] ? !cwarEmpty : 0;
 }

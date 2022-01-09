@@ -62,11 +62,13 @@ void XSPF::parse(Entries &entries) {
       entries.push_back(entry);
     }
   } else {
+    cwar << "Playlist parse error(s): " << m_playlist << std::endl;
+
     if (!result)
-      std::cerr << "Parse error: " << result.description() << std::endl;
+      cwar << result.description() << std::endl;
 
     if (!playlist.child(XSPF_ROOT))
-      std::cerr << "Parse error: Unrecognized root node" << std::endl;
+      cwar << "Unrecognized root node" << std::endl;
   }
 }
 

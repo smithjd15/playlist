@@ -19,7 +19,6 @@
 
 #include <cmath>
 #include <regex>
-#include <sstream>
 
 void M3U::parse(Entries &entries) {
   std::ifstream file(m_playlist);
@@ -114,8 +113,10 @@ void M3U::parse(Entries &entries) {
   file.close();
 
   if (file.bad() || invalidExtInfo) {
+    cwar << "Playlist parse error(s): " << m_playlist << std::endl;
+
     if (invalidExtInfo)
-      std::cerr << "Parse error: Invalid extended information" << std::endl;
+      cwar << "Invalid extended information" << std::endl;
 
     entries.clear();
   }

@@ -78,14 +78,16 @@ void PLS::parse(Entries &entries) {
 
   if (file.bad() || !plsSection || (plsEntries != (int)entries.size()) ||
       (plsVersion != PLS_VERSION)) {
+    cwar << "Playlist parse error(s): " << m_playlist << std::endl;
+
     if (!plsSection)
-      std::cerr << "Parse error: Section not found" << std::endl;
+      cwar << "Section not found" << std::endl;
 
     if (plsEntries != (int)entries.size())
-      std::cerr << "Parse error: Entry count mismatch" << std::endl;
+      cwar << "Entry count mismatch" << std::endl;
 
     if (plsVersion != PLS_VERSION)
-      std::cerr << "Parse error: Invalid or missing version" << std::endl;
+      cwar << "Invalid or missing version" << std::endl;
 
     entries.clear();
   }

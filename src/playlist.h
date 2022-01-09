@@ -21,6 +21,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -90,3 +91,4 @@ const Entries::const_iterator find(const Entry &entry, const Entries &entries,
 Playlist *playlist(const fs::path &playlist);
 
 extern Flags flags;
+extern std::stringstream cwar;

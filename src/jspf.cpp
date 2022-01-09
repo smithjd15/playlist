@@ -79,12 +79,13 @@ void JSPF::parse(Entries &entries) {
       t++;
     }
   } else {
+    cwar << "Playlist parse error(s): " << m_playlist << std::endl;
+
     if (!result)
-      std::cerr << "Parse error: " << rapidjson::GetParseError_En(result.Code())
-                << std::endl;
+      cwar << rapidjson::GetParseError_En(result.Code()) << std::endl;
 
     if (!doc.HasMember(JSPF_ROOT))
-      std::cerr << "Parse error: Unrecognized root" << std::endl;
+      cwar << "Unrecognized root" << std::endl;
   }
 }
 
