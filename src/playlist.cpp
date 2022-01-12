@@ -128,19 +128,19 @@ void show(const List &list) {
   if (list.titles > 1)
     totalTitles = " (of " + std::to_string(list.titles) + "!)";
 
-  std::cout << std::endl;
   std::cout << "[n]etwork images: " << list.netImages
             << "\t[u]nfound images: " << list.unfoundImages << std::endl;
   std::cout << "[D]upe: " << list.dupeTargets
             << "\t[N]etwork: " << list.netTargets
-            << "\t[U]nfound: " << list.unfoundTargets
-            << "\tTotal: " << list.entries.size() << std::endl;
+            << "\t[U]nfound: " << list.unfoundTargets << std::endl;
+  std::cout << "Entries: " << list.entries.size() << std::endl;
   std::cout << std::endl;
-  std::cout << "Known title: " << list.title << totalTitles << std::endl;
-  std::cout << "Known image: " << list.image.string() << totalImages << std::endl;
   std::cout << "Total known duration: " << totalDuration << " seconds "
             << totalDur << std::endl;
   std::cout << "Total known disk used: " << size << " MB" << std::endl;
+  std::cout << "Known title: " << list.title << totalTitles << std::endl;
+  std::cout << "Known image: " << list.image.string() << totalImages
+            << std::endl;
 }
 
 void list(const List &list) {
