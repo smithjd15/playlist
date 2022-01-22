@@ -48,6 +48,7 @@ Flags flags;
 
 void show(const List &list) {
   int totalDuration(0);
+  uint size(0);
   time_t duration;
   tm *dur;
   std::string totalDur;
@@ -76,6 +77,10 @@ void show(const List &list) {
     if (!entry.validTarget)
       status += "U";
 
+    if (entry.localTarget && entry.validTarget)
+      size +=
+          fs::file_size(absPath(entry.playlist.parent_path(), entry.target));
+
     if (!entry.duplicateTarget && entry.localTarget && entry.validTarget)
       status = "*";
 
@@ -85,6 +90,8 @@ void show(const List &list) {
     std::cout << entry.track << "\t" << status << "\t" << duration << "\t"
               << title << "\t" << target << std::endl;
   }
+
+  size = size / 1024 / 1024;
 
   duration = totalDuration;
   dur = gmtime(&duration);
@@ -109,6 +116,7 @@ void show(const List &list) {
   std::cout << "Known image: " << list.image.string() << std::endl;
   std::cout << "Total known duration: " << totalDuration << " seconds "
             << totalDur << std::endl;
+  std::cout << "Total known disk used: " << size << " MB" << std::endl;
 }
 
 void list(const List &list) {
