@@ -1,6 +1,6 @@
 # Playlist
 
-Playlist is a tool for media playlist files. It can convert between common playlist formats; change and remove metadata; concatenate multiple playlists; remove duplicate entries; randomize entry order; append and remove entries; remove unfound target entries and image targets; identify unfound, unfound image, duplicate, network, network image, and unique (between multiple playlists) targets; get metadata from local targets; and transform local targets into absolute paths, or paths relative to the out playlist or any arbitrary path.
+Playlist is a tool for media playlist files. It can convert between common playlist formats; change and remove metadata; concatenate multiple playlists; remove duplicate entries; randomize entry order; insert, append and remove entries; remove unfound target entries and image targets; identify unfound, unfound image, duplicate, network, network image, and unique (between multiple playlists) targets; get metadata from local targets; and transform local targets into absolute paths, or paths relative to the out playlist or any arbitrary path.
 
 Playlist supports the common title and duration metadata for m3u, pls, and xspf/jspf, and also creator (artist), album, annotation (comment), identifier, image, info, and album track for m3u and xspf/jspf. It also supports m3u and xspf/jspf playlist title and image.
 
@@ -93,9 +93,13 @@ playlist -O -o outlist.m3u inlist.m3u
 playlist -I -o outlist.m3u inlist.m3u
 
 ### Reconstruct
-#### Playlist can append, change, and remove entries, drop duplicate and unfound target entries and images, randomize the order of entries, and concatenate multiple playlists.
+#### Playlist can insert or append, change, and remove entries, drop duplicate and unfound target entries and images, randomize the order of entries, and concatenate multiple playlists.
 
 The -a and -e options can be used more than once.
+
+##### Example inserting an entry:
+
+playlist -a 22:/foo/bar/target.ext -o outlist.m3u inlist.m3u
 
 ##### Example appending an entry:
 

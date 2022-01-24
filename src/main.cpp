@@ -35,7 +35,7 @@ void help() {
   std::cout << std::endl;
   std::cout << "Usage: playlist [-l|-L|-P|-J|-K|-A|-T|-M|-E|-D|-G|-N "
                "all|dupe|image|net|netimg|unfound|unfoundimg|unique] [-p] "
-               "[-f path] [[-O|-I]|[-R|-B path]] [-a target] "
+               "[-f path] [[-O|-I]|[-R|-B path]] [-a [track:]target] "
                "[-e track:FIELD=value] "
 #ifdef LIBCURL
 #ifdef TAGLIB
@@ -81,7 +81,7 @@ void help() {
             << std::endl;
   std::cout << "\t-t Set title for out playlist" << std::endl;
   std::cout << "\t-g Set image for out playlist" << std::endl;
-  std::cout << "\t-a Append entry" << std::endl;
+  std::cout << "\t-a Insert or append entry" << std::endl;
   std::cout << "\t-e track:FIELD=value Set entry field" << std::endl;
   std::cout << "\t-r Remove entry (same as -e track:ta=)" << std::endl;
   std::cout << "\t-d Remove duplicate entries from out playlist" << std::endl;
@@ -458,14 +458,35 @@ int main(int argc, char **argv) {
     }
 
     for (const std::string &addItem : addItems) {
+      std::pair<std::string, std::string> pair = split(addItem, ":");
       Entry entry;
+      Entries::iterator index;
+
       entry.playlist = fs::current_path().append(".");
-      entry.target = processUri(addItem);
-      entry.track = list.entries.size() + 1;
+
+      if (!pair.first.empty() &&
+          std::all_of(pair.first.begin(), pair.first.end(), isdigit)) {
+        int track = std::stoi(pair.first);
+
+        entry.target = processUri(pair.second);
+        entry.track = track;
+
+        if ((track - 1) < list.entries.size()) {
+          index = list.entries.begin() + (track - 1);
+        } else {
+          index = list.entries.end();
+        }
+      } else {
+        entry.target = processUri(addItem);
+        entry.track = list.entries.size() + 1;
+
+        index = list.entries.end();
+      }
+
       entry.localTarget = localTarget(entry.target.string());
       entry.validTarget = validTarget(entry.target);
 
-      list.entries.push_back(entry);
+      list.entries.emplace(index, entry);
     }
 
     for (const std::string &changeItem : changeItems) {
