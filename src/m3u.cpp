@@ -47,8 +47,11 @@ void M3U::parse(Entries &entries) {
       std::string info;
       float duration;
 
-      if (!invalidExtInfo)
+      if (!invalidExtInfo) {
         invalidExtInfo = (pos > line.size());
+      } else if (!flags[31]) {
+        break;
+      }
 
       entry.title = line.substr(pos + 1);
 
@@ -118,7 +121,8 @@ void M3U::parse(Entries &entries) {
     if (invalidExtInfo)
       cwar << "Invalid extended information" << std::endl;
 
-    entries.clear();
+    if (file.bad() || !flags[31])
+      entries.clear();
   }
 }
 

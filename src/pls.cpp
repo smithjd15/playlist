@@ -36,7 +36,7 @@ void PLS::parse(Entries &entries) {
     plsSection = true;
 
   int t = 1;
-  while (!file.eof()) {
+  while (!file.eof() && (plsSection || flags[31])) {
     Entry entry;
 
     if (line.rfind("File" + std::to_string(t), 0) != std::string::npos) {
@@ -89,7 +89,8 @@ void PLS::parse(Entries &entries) {
     if (plsVersion != PLS_VERSION)
       cwar << "Invalid or missing version" << std::endl;
 
-    entries.clear();
+    if (file.bad() || !flags[31])
+      entries.clear();
   }
 }
 

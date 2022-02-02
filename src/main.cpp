@@ -35,7 +35,7 @@ void help() {
   std::cout << std::endl;
   std::cout << "Usage: playlist [-l|-L|-P|-J|-K|-A|-T|-M|-E|-D|-G|-N "
                "all|dupe|image|net|netimg|unfound|unfoundimg|unique] [-p] "
-               "[-f path] [[-O|-I]|[-R|-B path]] [-a [track:]target] "
+               "[-f path] [-z] [[-O|-I]|[-R|-B path]] [-a [track:]target] "
                "[-e track:FIELD=value] "
 #ifdef LIBCURL
 #ifdef TAGLIB
@@ -72,6 +72,7 @@ void help() {
   std::cout << std::endl;
   std::cout << "\t-x Preview changes (with -o)" << std::endl;
   std::cout << "\t-f In playlist relative local target base path" << std::endl;
+  std::cout << "\t-z Ignore in playlist parse errors" << std::endl;
   std::cout << "\t-o Out playlist file (.jspf, .m3u, .pls, .xspf)" << std::endl;
   std::cout << "\t-R Out playlist local targets relative to out playlist"
             << std::endl;
@@ -115,7 +116,8 @@ void help() {
   std::cout
       << "1: Out playlist has unfound target entries or image targets; or "
          "multiple images or titles; or a dupe or unfound list contains at "
-         "least one entry; or an in playlist was not found"
+         "least one entry; or an in playlist was not found or was parsed with "
+         "errors"
 #ifdef TAGLIB
          "; or metadata could not be read from a target"
 #endif
@@ -159,22 +161,24 @@ int main(int argc, char **argv) {
 #ifdef TAGLIB
   while (
       (c = getopt(argc, argv,
-                  "a:A:B:dD:e:E:f:g:G:iIJ:K:l:L:mM:nN:o:OpP:r:Rst:T:uvxqh")) !=
+                  "a:A:B:dD:e:E:f:g:G:iIJ:K:l:L:mM:nN:o:OpP:r:Rst:T:uvxzqh")) !=
+      -1) {
+#else
+  while (
+      (c = getopt(argc, argv,
+                  "a:A:B:dD:e:E:f:g:G:IJ:K:l:L:mM:nN:o:OpP:r:Rst:T:uvxzqh")) !=
+      -1) {
+#endif
+#else
+#ifdef TAGLIB
+  while (
+      (c = getopt(argc, argv,
+                  "a:A:B:dD:e:E:f:g:G:iJ:K:Il:L:mM:nN:o:OpP:r:Rt:T:uvxzqh")) !=
       -1) {
 #else
   while ((c = getopt(
               argc, argv,
-              "a:A:B:dD:e:E:f:g:G:IJ:K:l:L:mM:nN:o:OpP:r:Rst:T:uvxqh")) != -1) {
-#endif
-#else
-#ifdef TAGLIB
-  while ((c = getopt(
-              argc, argv,
-              "a:A:B:dD:e:E:f:g:G:iJ:K:Il:L:mM:nN:o:OpP:r:Rt:T:uvxqh")) != -1) {
-#else
-  while ((c = getopt(argc, argv,
-                     "a:A:B:dD:e:E:f:g:G:IJ:K:l:L:mM:nN:o:OpP:r:Rt:T:uvxqh")) !=
-         -1) {
+              "a:A:B:dD:e:E:f:g:G:IJ:K:l:L:mM:nN:o:OpP:r:Rt:T:uvxzqh")) != -1) {
 #endif
 #endif
     switch (c) {
@@ -330,6 +334,10 @@ int main(int argc, char **argv) {
       break;
     case 'x':
       flags[11] = true;
+
+      break;
+    case 'z':
+      flags[31] = true;
 
       break;
     case 'v':
