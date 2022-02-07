@@ -27,7 +27,7 @@
 
 #include "unistd.h"
 
-#define VER 1.42
+#define VER 1.43
 
 #define PLS_SECTION "[playlist]"
 #define PLS_VERSION 2
@@ -839,29 +839,6 @@ int main(int argc, char **argv) {
                    std::default_random_engine());
 
     for (Entries::iterator it = entries.begin(); it != entries.end();) {
-      const auto resolvePathDotSegments = [](const fs::path &inPath) {
-        std::string path, segment;
-        std::stringstream segStream(inPath.string());
-
-        while (std::getline(segStream, segment, '/')) {
-          if (segment.empty())
-            continue;
-
-          if (segment == "..") {
-            std::size_t pos = path.find_last_of('/');
-
-            if (pos)
-              path = path.substr(0, pos);
-          } else {
-            if (inPath.has_root_path() || !path.empty())
-              path += "/";
-            path += segment;
-          }
-        }
-
-        return fs::path(path);
-      };
-
       const auto encodeUri = [](const std::string &uri) {
         std::ostringstream uriStr;
         std::regex r("[!:\\/\\-._~0-9A-Za-z]");
@@ -888,8 +865,8 @@ int main(int argc, char **argv) {
       it->track = std::distance(entries.begin(), it) + 1;
 
       if (it->localTarget) {
-        fs::path target = getPath(it->playlist.parent_path(), it->target);
-        target = resolvePathDotSegments(target);
+        fs::path target =
+            getPath(it->playlist.parent_path(), it->target).lexically_normal();
 
         if (Flags[0] || Flags[3]) {
           it->target = target;
