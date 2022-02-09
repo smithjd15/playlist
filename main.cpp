@@ -141,37 +141,35 @@ const Entries ParsePLS(const fs::path &playlist) {
   Entries entries;
   int plsEntries(0), plsVersion(0);
 
+  std::getline(file, line);
+  while (line.empty())
+    std::getline(file, line);
+
+  if (line == PLS_SECTION)
+    plsSection = true;
+
   int t = 1;
   while (!file.eof()) {
     Entry entry;
 
-    if (entries.empty() && (line.rfind(PLS_SECTION, 0) != std::string::npos))
-      plsSection = true;
-
     if (line.rfind("File" + std::to_string(t), 0) != std::string::npos) {
-      entry.playlist = playlist;
       entry.target = ProcessUri(Split(line).second);
+
+      while ((line.rfind("File" + std::to_string(t + 1), 0) ==
+              std::string::npos) &&
+             (line.rfind("NumberOfEntries", 0) == std::string::npos) &&
+             !file.eof()) {
+        if (line.rfind("Title" + std::to_string(t), 0) != std::string::npos)
+          entry.title = Split(line).second;
+
+        if (line.rfind("Length" + std::to_string(t), 0) != std::string::npos)
+          entry.duration = std::stoi(Split(line).second);
+
+        std::getline(file, line);
+      }
+
       entry.track = t;
-
-      std::getline(file, line);
-      while (line.empty())
-        std::getline(file, line);
-
-      if (line.rfind("Title" + std::to_string(t), 0) != std::string::npos) {
-        entry.title = Split(line).second;
-
-        std::getline(file, line);
-        while (line.empty())
-          std::getline(file, line);
-      }
-
-      if (line.rfind("Length" + std::to_string(t), 0) != std::string::npos) {
-        entry.duration = std::stoi(Split(line).second);
-
-        std::getline(file, line);
-        while (line.empty())
-          std::getline(file, line);
-      }
+      entry.playlist = playlist;
 
       entries.push_back(entry);
 
@@ -200,7 +198,7 @@ const Entries ParsePLS(const fs::path &playlist) {
       std::cerr << "Parse error: Entry count mismatch" << std::endl;
 
     if (plsVersion != PLS_VERSION)
-      std::cerr << "Parse error: Invalid version" << std::endl;
+      std::cerr << "Parse error: Invalid or missing version" << std::endl;
 
     entries.clear();
   }
