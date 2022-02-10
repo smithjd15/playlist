@@ -73,7 +73,8 @@ void help() {
   std::cout << "\t-x Preview changes (with -w)" << std::endl;
   std::cout << "\t-f In playlist relative local target base path" << std::endl;
   std::cout << "\t-z Ignore in playlist parse errors" << std::endl;
-  std::cout << "\t-w Out playlist file (.jspf, .m3u, .pls, .xspf)" << std::endl;
+  std::cout << "\t-w Out playlist file (.cue, .jspf, .m3u, .pls, .xspf)"
+            << std::endl;
   std::cout << "\t-o Clobber out playlist" << std::endl;
   std::cout << "\t-R Out playlist local targets relative to out playlist"
             << std::endl;
