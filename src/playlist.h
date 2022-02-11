@@ -89,6 +89,7 @@ void fetchMetadata(Entry &entry);
 #endif
 
 const std::string processUri(std::string uri);
+const std::string unquote(std::string quoted);
 const std::string encodeUri(const std::string &uri);
 const fs::path absPath(const fs::path &p1, const fs::path &p2);
 const KeyValue split(const std::string &line, std::string delim = "=");

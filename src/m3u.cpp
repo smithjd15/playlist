@@ -67,9 +67,7 @@ void M3U::parse(Entries &entries) {
 
       for (; it != end; ++it) {
         KeyValue pair = split(it->str());
-        std::istringstream strStream(pair.second);
-
-        strStream >> std::quoted(pair.second);
+        pair.second = unquote(pair.second);
 
         if (pair.first == "album")
           entry.album = pair.second;

@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
+#include <iomanip>
 #include <ios>
 #include <regex>
 #include <sstream>
@@ -303,6 +304,13 @@ const std::string processUri(std::string uri) {
     uri = uri.substr(1);
 
   return uri;
+}
+
+const std::string unquote(std::string quoted) {
+  std::istringstream unquote(quoted);
+  unquote >> std::quoted(quoted);
+
+  return quoted;
 }
 
 const std::string encodeUri(const std::string &uri) {
