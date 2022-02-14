@@ -70,7 +70,7 @@ void show(const List &list) {
                             ? entry.artist + " - " + entry.title
                             : entry.title,
                 status;
-    float duration = (!entry.validTarget && flags[11]) ? 0 : entry.duration;
+    float duration = (!entry.validTarget && flags[30]) ? 0 : entry.duration;
 
     if (!entry.image.empty()) {
       if (!entry.localImage)
@@ -154,45 +154,45 @@ void list(const List &list) {
       unique;
 
   const auto targetItem = [](const Entry &entry) {
-    if (flags[7])
-      return KeyValue(entry.playlist.string(), entry.target.string());
-
-    if (flags[33])
-      return KeyValue(entry.playlistArtist, entry.target.string());
-
-    if (flags[26])
-      return KeyValue(entry.playlistTitle, entry.target.string());
-
-    if (flags[27])
-      return KeyValue(entry.playlistImage.string(), entry.target.string());
-
-    if (flags[20])
+    if (flags[0])
       return KeyValue(entry.artist, entry.target.string());
 
-    if (flags[9])
-      return KeyValue(entry.title, entry.target.string());
-
-    if (flags[21])
-      return KeyValue(entry.album, entry.target.string());
-
-    if (flags[22])
-      return KeyValue(entry.comment, entry.target.string());
-
-    if (flags[2])
+    if (flags[10])
       return KeyValue(entry.identifier, entry.target.string());
 
-    if (flags[23])
+    if (flags[11])
+      return KeyValue(entry.comment, entry.target.string());
+
+    if (flags[12])
       return KeyValue(entry.image.string(), entry.target.string());
 
-    if (flags[24])
+    if (flags[15])
+      return KeyValue(entry.playlistTitle, entry.target.string());
+
+    if (flags[16])
+      return KeyValue(entry.playlistImage.string(), entry.target.string());
+
+    if (flags[19])
+      return KeyValue(entry.album, entry.target.string());
+
+    if (flags[21])
       return KeyValue(entry.info, entry.target.string());
+
+    if (flags[24])
+      return KeyValue(entry.playlist.string(), entry.target.string());
+
+    if (flags[27])
+      return KeyValue(entry.playlistArtist, entry.target.string());
+
+    if (flags[28])
+      return KeyValue(entry.title, entry.target.string());
 
     return KeyValue(std::to_string(entry.track), entry.target.string());
   };
 
   const auto listTargetItems = [](const std::vector<KeyValue> &items) {
     for (const KeyValue &item : items) {
-      if (flags[4]) {
+      if (flags[17]) {
         std::cout << item.second << std::endl;
       } else {
         std::cout << item.first << "\t" << item.second << std::endl;
@@ -227,35 +227,35 @@ void list(const List &list) {
     all.push_back(targetItem(*it));
   }
 
-  if (flags[14]) {
+  if (flags[1]) {
     listTargetItems(all);
 
     std::exit(0);
-  } else if (flags[15]) {
+  } else if (flags[2]) {
     listTargetItems(dupe);
 
-    std::exit(!flags[13] ? !dupe.empty() : 0);
-  } else if (flags[30]) {
+    std::exit(!flags[33] ? !dupe.empty() : 0);
+  } else if (flags[3]) {
     listTargetItems(image);
 
     std::exit(0);
-  } else if (flags[16]) {
+  } else if (flags[4]) {
     listTargetItems(network);
 
     std::exit(0);
-  } else if (flags[28]) {
+  } else if (flags[5]) {
     listTargetItems(netImg);
 
     std::exit(0);
-  } else if (flags[17]) {
+  } else if (flags[6]) {
     listTargetItems(unfound);
 
-    std::exit(!flags[13] ? !unfound.empty() : 0);
-  } else if (flags[29]) {
+    std::exit(!flags[33] ? !unfound.empty() : 0);
+  } else if (flags[7]) {
     listTargetItems(unfoundImg);
 
-    std::exit(!flags[13] ? !unfoundImg.empty() : 0);
-  } else if (flags[18]) {
+    std::exit(!flags[33] ? !unfoundImg.empty() : 0);
+  } else if (flags[8]) {
     listTargetItems(unique);
 
     std::exit(0);
@@ -373,7 +373,7 @@ const bool validTarget(const fs::path &target) {
   bool valid = (!local || fs::exists(target));
 
 #ifdef LIBCURL
-  if (!local && flags[19]) {
+  if (!local && flags[26]) {
     CURL *curl = curl_easy_init();
     CURLcode result;
 

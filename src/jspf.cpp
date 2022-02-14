@@ -108,7 +108,7 @@ const bool JSPF::write(const List &list) {
     plEntry.AddMember("location", StringRef(entry.target.c_str()),
                       doc.GetAllocator());
 
-    if (!flags[5]) {
+    if (!flags[18]) {
       if (!entry.album.empty())
         plEntry.AddMember("album", StringRef(entry.album.c_str()),
                           doc.GetAllocator());
@@ -140,7 +140,7 @@ const bool JSPF::write(const List &list) {
     track.PushBack(plEntry, doc.GetAllocator());
   }
 
-  if (!flags[5]) {
+  if (!flags[18]) {
     if (!list.title.empty())
       doc[JSPF_ROOT].AddMember("title", StringRef(list.title.c_str()),
                                doc.GetAllocator());

@@ -113,7 +113,7 @@ void CUE::parse(Entries &entries) {
 const bool CUE::write(const List &list) {
   std::ofstream file(m_playlist);
 
-  if (!flags[5]) {
+  if (!flags[18]) {
     if (!list.title.empty())
       file << "TITLE " << std::quoted(list.title) << std::endl;
     if (!list.artist.empty())
@@ -125,7 +125,7 @@ const bool CUE::write(const List &list) {
     std::ostringstream track;
 
     if (!entry.localTarget) {
-      if (!flags[13])
+      if (!flags[32])
         std::cout << "Skipping URI: " << entry.target << std::endl;
 
       continue;
@@ -155,7 +155,7 @@ const bool CUE::write(const List &list) {
          << std::endl;
     file << "  TRACK " << track.str() << " AUDIO" << std::endl;
 
-    if (!flags[5]) {
+    if (!flags[18]) {
       if (!entry.title.empty())
         file << "    TITLE " << std::quoted(entry.title) << std::endl;
       if (!entry.artist.empty())

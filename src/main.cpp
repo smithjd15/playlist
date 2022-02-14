@@ -136,24 +136,24 @@ int main(int argc, char **argv) {
   std::vector<std::string> addItems, changeItems;
 
   auto parseList = [](const std::string &arg) {
-    flags[14] = (arg == "all");
-    flags[15] = (arg == "dupe");
-    flags[30] = (arg == "image");
-    flags[16] = (arg == "net");
-    flags[28] = (arg == "netimg");
-    flags[17] = (arg == "unfound");
-    flags[29] = (arg == "unfoundimg");
-    flags[18] = (arg == "unique");
+    flags[1] = (arg == "all");
+    flags[2] = (arg == "dupe");
+    flags[3] = (arg == "image");
+    flags[4] = (arg == "net");
+    flags[5] = (arg == "netimg");
+    flags[6] = (arg == "unfound");
+    flags[7] = (arg == "unfoundimg");
+    flags[8] = (arg == "unique");
   };
 
   const auto transformPath = [&](const fs::path &basePath, fs::path &path) {
     fs::path target = absPath(basePath, path);
 
-    if (flags[0]) {
-      path = target;
-    } else if (flags[3]) {
+    if (flags[14]) {
       path = "file://" + encodeUri(target);
-    } else if (flags[8]) {
+    } else if (flags[23]) {
+      path = target;
+    } else if (flags[25]) {
       path = target.lexically_relative(list.playlist.parent_path());
     } else if (!base.empty()) {
       path = target.lexically_relative(base);
@@ -189,7 +189,7 @@ int main(int argc, char **argv) {
 #endif
     switch (c) {
     case 'A':
-      flags[20] = true;
+      flags[0] = true;
 
       parseList(optarg);
 
@@ -207,11 +207,11 @@ int main(int argc, char **argv) {
 
       break;
     case 'd':
-      flags[1] = true;
+      flags[9] = true;
 
       break;
     case 'D':
-      flags[2] = true;
+      flags[10] = true;
 
       parseList(optarg);
 
@@ -221,7 +221,7 @@ int main(int argc, char **argv) {
 
       break;
     case 'E':
-      flags[22] = true;
+      flags[11] = true;
 
       parseList(optarg);
 
@@ -235,35 +235,35 @@ int main(int argc, char **argv) {
 
       break;
     case 'G':
-      flags[23] = true;
+      flags[12] = true;
 
       parseList(optarg);
 
       break;
 #ifdef TAGLIB
     case 'i':
-      flags[25] = true;
+      flags[13] = true;
 
       break;
 #endif
     case 'I':
-      flags[3] = true;
+      flags[14] = true;
 
       break;
     case 'J':
-      flags[26] = true;
+      flags[15] = true;
 
       parseList(optarg);
 
       break;
     case 'K':
-      flags[27] = true;
+      flags[16] = true;
 
       parseList(optarg);
 
       break;
     case 'l':
-      flags[4] = true;
+      flags[17] = true;
 
       parseList(optarg);
 
@@ -273,43 +273,43 @@ int main(int argc, char **argv) {
 
       break;
     case 'm':
-      flags[5] = true;
+      flags[18] = true;
 
       break;
     case 'M':
-      flags[21] = true;
+      flags[19] = true;
 
       parseList(optarg);
 
       break;
     case 'n':
-      flags[6] = true;
+      flags[20] = true;
 
       break;
     case 'N':
-      flags[24] = true;
+      flags[21] = true;
 
       parseList(optarg);
 
       break;
     case 'o':
-      flags[32] = true;
+      flags[22] = true;
 
       break;
     case 'O':
-      flags[0] = true;
+      flags[23] = true;
 
       break;
     case 'p':
-      flags[14] = true;
-      flags[4] = true;
-      flags[0] = true;
-      flags[11] = true;
+      flags[1] = true;
+      flags[17] = true;
+      flags[23] = true;
+      flags[30] = true;
       list.playlist = fs::temp_directory_path() /= "playlisttargets.m3u";
 
       break;
     case 'P':
-      flags[7] = true;
+      flags[24] = true;
 
       parseList(optarg);
 
@@ -319,17 +319,17 @@ int main(int argc, char **argv) {
 
       break;
     case 'R':
-      flags[8] = true;
+      flags[25] = true;
 
       break;
 #ifdef LIBCURL
     case 's':
-      flags[19] = true;
+      flags[26] = true;
 
       break;
 #endif
     case 'S':
-      flags[33] = true;
+      flags[27] = true;
 
       parseList(optarg);
 
@@ -339,13 +339,13 @@ int main(int argc, char **argv) {
 
       break;
     case 'T':
-      flags[9] = true;
+      flags[28] = true;
 
       parseList(optarg);
 
       break;
     case 'u':
-      flags[10] = true;
+      flags[29] = true;
 
       break;
     case 'w':
@@ -353,7 +353,7 @@ int main(int argc, char **argv) {
 
       break;
     case 'x':
-      flags[11] = true;
+      flags[30] = true;
 
       break;
     case 'z':
@@ -361,11 +361,11 @@ int main(int argc, char **argv) {
 
       break;
     case 'v':
-      flags[12] = true;
+      flags[32] = true;
 
       break;
     case 'q':
-      flags[13] = true;
+      flags[33] = true;
 
       break;
     case 'h':
@@ -386,7 +386,7 @@ int main(int argc, char **argv) {
     if (fs::exists(inPl)) {
       playlist(inPl)->parse(entries);
 
-      if (flags[12])
+      if (flags[32])
         std::cout << "Parsed " << entries.size() << " entries"
                   << " from playlist file: " << inPl << std::endl;
 
@@ -444,7 +444,7 @@ int main(int argc, char **argv) {
 
     if (it->localTarget) {
 #ifdef TAGLIB
-      if (it->validTarget && flags[25])
+      if (it->validTarget && flags[13])
         fetchMetadata(*it);
 
 #endif
@@ -457,20 +457,20 @@ int main(int argc, char **argv) {
   }
 
   if (list.playlist.empty()) {
-    if (flags[11]) {
+    if (flags[30]) {
       std::cerr << "-x option requires an out playlist (-w)" << std::endl;
 
       return 2;
     }
   } else {
-    if (fs::exists(list.playlist) && !flags[32] && !flags[11]) {
+    if (fs::exists(list.playlist) && !flags[22] && !flags[30]) {
       std::cerr << "File exists: " << list.playlist << std::endl;
 
       return 2;
     }
 
-    if ((!base.empty() && flags[0]) || (flags[0] && flags[8]) ||
-        (!base.empty() && flags[3]) || (flags[3] && flags[8])) {
+    if ((!base.empty() && flags[23]) || (flags[23] && flags[25]) ||
+        (!base.empty() && flags[14]) || (flags[14] && flags[25])) {
       std::cerr << "Cannot combine absolute and relative path transforms"
                 << std::endl;
 
@@ -599,8 +599,8 @@ int main(int argc, char **argv) {
          it != list.entries.end();) {
       it->duplicateTarget = find(*it, list.entries) < it;
 
-      if (it->target.empty() || (!it->validTarget && flags[10]) ||
-          (it->duplicateTarget && flags[1])) {
+      if (it->target.empty() || (!it->validTarget && flags[29]) ||
+          (it->duplicateTarget && flags[9])) {
 
         it = list.entries.erase(it);
 
@@ -617,7 +617,7 @@ int main(int argc, char **argv) {
       }
 
       if (!it->image.empty()) {
-        if (!it->validImage && flags[10]) {
+        if (!it->validImage && flags[29]) {
           it->image.clear();
         } else if (it->localImage) {
           transformPath(it->playlist.parent_path(), it->image);
@@ -632,7 +632,7 @@ int main(int argc, char **argv) {
     }
 
     if (!list.image.empty()) {
-      if (!list.validImage && flags[10]) {
+      if (!list.validImage && flags[29]) {
         list.image.clear();
       } else {
         if (list.localImage) {
@@ -643,16 +643,16 @@ int main(int argc, char **argv) {
       }
     }
 
-    if (!base.empty() || flags[8])
-      list.relative = (!base.empty() || flags[8]);
+    if (!base.empty() || flags[25])
+      list.relative = (!base.empty() || flags[25]);
 
-    if (flags[12])
+    if (flags[32])
       std::cout << "Generated playlist: " << list.entries.size() << " entries"
                 << std::endl;
   }
 
   if (list.entries.empty()) {
-    if ((cwar.rdbuf()->in_avail() != 0) && !flags[13])
+    if ((cwar.rdbuf()->in_avail() != 0) && !flags[33])
       std::cerr << cwar.rdbuf();
     std::cerr << "Nothing to do!" << std::endl;
 
@@ -661,8 +661,8 @@ int main(int argc, char **argv) {
     return 2;
   }
 
-  if (flags[14] || flags[15] || flags[16] || flags[17] || flags[18] ||
-      flags[28] || flags[29] || flags[30])
+  if (flags[1] || flags[2] || flags[3] || flags[4] || flags[5] || flags[6] ||
+      flags[7] || flags[8])
     ::list(list);
 
   for (const Entry &entry : list.entries) {
@@ -700,11 +700,11 @@ int main(int argc, char **argv) {
       cwar << "WARNING: 1 of " << list.titles
            << " playlist titles auto-selected" << std::endl;
 
-    if (flags[11]) {
+    if (flags[30]) {
       show(list);
     } else {
       if (playlist(list.playlist)->write(list)) {
-        if (flags[12])
+        if (flags[32])
           std::cout << "Playlist successfully written: " << list.playlist
                     << std::endl;
       } else {
@@ -719,8 +719,8 @@ int main(int argc, char **argv) {
 
   const bool cwarEmpty = (cwar.rdbuf()->in_avail() == 0);
 
-  if (!cwarEmpty && !flags[13])
+  if (!cwarEmpty && !flags[33])
     std::cerr << cwar.rdbuf();
 
-  return !flags[13] ? !cwarEmpty : 0;
+  return !flags[33] ? !cwarEmpty : 0;
 }

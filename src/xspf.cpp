@@ -93,7 +93,7 @@ const bool XSPF::write(const List &list) {
     track = trackList.append_child("track");
     track.append_child("location").text().set(entry.target.c_str());
 
-    if (!flags[5]) {
+    if (!flags[18]) {
       if (!entry.album.empty())
         track.append_child("album").text().set(entry.album.c_str());
       if (!entry.comment.empty())
@@ -117,7 +117,7 @@ const bool XSPF::write(const List &list) {
     }
   }
 
-  if (!flags[5]) {
+  if (!flags[18]) {
     if (list.relative) {
       std::string base =
           list.playlist.parent_path().string() + fs::path::preferred_separator;

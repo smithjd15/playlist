@@ -103,7 +103,7 @@ const bool PLS::write(const List &list) {
   for (const Entry &entry : list.entries) {
     file << "File" << entry.track << "=" << entry.target.string() << std::endl;
 
-    if (!flags[5]) {
+    if (!flags[18]) {
       if (!entry.artist.empty() || !entry.title.empty() ||
           (entry.duration > 0)) {
         if (!entry.artist.empty() || !entry.title.empty()) {
