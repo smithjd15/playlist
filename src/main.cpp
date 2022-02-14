@@ -50,7 +50,7 @@ void help() {
                "[-r track] [-d] [-u] [-n] [-m] "
 #endif
 #endif
-               "[-t title] [-g target] [-q] [-v] [-x] [-o outfile.ext] "
+               "[-t title] [-g target] [-q] [-v] [-x] [-o] [-w outfile.ext] "
                "infile..."
             << std::endl;
   std::cout << std::endl;
@@ -70,10 +70,11 @@ void help() {
   std::cout << "\t-p List all targets in absolute paths (same as -O -l all)"
             << std::endl;
   std::cout << std::endl;
-  std::cout << "\t-x Preview changes (with -o)" << std::endl;
+  std::cout << "\t-x Preview changes (with -w)" << std::endl;
   std::cout << "\t-f In playlist relative local target base path" << std::endl;
   std::cout << "\t-z Ignore in playlist parse errors" << std::endl;
-  std::cout << "\t-o Out playlist file (.jspf, .m3u, .pls, .xspf)" << std::endl;
+  std::cout << "\t-w Out playlist file (.jspf, .m3u, .pls, .xspf)" << std::endl;
+  std::cout << "\t-o Clobber out playlist" << std::endl;
   std::cout << "\t-R Out playlist local targets relative to out playlist"
             << std::endl;
   std::cout << "\t-B Out playlist local targets base path" << std::endl;
@@ -98,7 +99,7 @@ void help() {
   std::cout << "\t-i Get entry metadata from local targets" << std::endl;
 #endif
   std::cout << std::endl;
-  std::cout << "\t-q Quiet (clobber out playlist)" << std::endl;
+  std::cout << "\t-q Quiet" << std::endl;
   std::cout << "\t-v Verbose" << std::endl;
   std::cout << "\t-h This help" << std::endl;
   std::cout << std::endl;
@@ -159,26 +160,27 @@ int main(int argc, char **argv) {
   int c;
 #ifdef LIBCURL
 #ifdef TAGLIB
-  while (
-      (c = getopt(argc, argv,
-                  "a:A:B:dD:e:E:f:g:G:iIJ:K:l:L:mM:nN:o:OpP:r:Rst:T:uvxzqh")) !=
-      -1) {
+  while ((c = getopt(
+              argc, argv,
+              "a:A:B:dD:e:E:f:g:G:iIJ:K:l:L:mM:nN:oOpP:r:Rst:T:uvw:xzqh")) !=
+         -1) {
 #else
   while (
       (c = getopt(argc, argv,
-                  "a:A:B:dD:e:E:f:g:G:IJ:K:l:L:mM:nN:o:OpP:r:Rst:T:uvxzqh")) !=
+                  "a:A:B:dD:e:E:f:g:G:IJ:K:l:L:mM:nN:oOpP:r:Rst:T:uvw:xzqh")) !=
       -1) {
 #endif
 #else
 #ifdef TAGLIB
   while (
       (c = getopt(argc, argv,
-                  "a:A:B:dD:e:E:f:g:G:iJ:K:Il:L:mM:nN:o:OpP:r:Rt:T:uvxzqh")) !=
+                  "a:A:B:dD:e:E:f:g:G:iJ:K:Il:L:mM:nN:oOpP:r:Rt:T:uvw:xzqh")) !=
       -1) {
 #else
-  while ((c = getopt(
-              argc, argv,
-              "a:A:B:dD:e:E:f:g:G:IJ:K:l:L:mM:nN:o:OpP:r:Rt:T:uvxzqh")) != -1) {
+  while (
+      (c = getopt(argc, argv,
+                  "a:A:B:dD:e:E:f:g:G:IJ:K:l:L:mM:nN:oOpP:r:Rt:T:uvw:xzqh")) !=
+      -1) {
 #endif
 #endif
     switch (c) {
@@ -283,7 +285,7 @@ int main(int argc, char **argv) {
 
       break;
     case 'o':
-      list.playlist = absPath(fs::current_path(), optarg);
+      flags[32] = true;
 
       break;
     case 'O':
@@ -330,6 +332,10 @@ int main(int argc, char **argv) {
       break;
     case 'u':
       flags[10] = true;
+
+      break;
+    case 'w':
+      list.playlist = absPath(fs::current_path(), optarg);
 
       break;
     case 'x':
@@ -430,12 +436,12 @@ int main(int argc, char **argv) {
 
   if (list.playlist.empty()) {
     if (flags[11]) {
-      std::cerr << "-x option requires an out playlist (-o)" << std::endl;
+      std::cerr << "-x option requires an out playlist (-w)" << std::endl;
 
       return 2;
     }
   } else {
-    if (fs::exists(list.playlist) && !flags[13] && !flags[11]) {
+    if (fs::exists(list.playlist) && !flags[32] && !flags[11]) {
       std::cerr << "File exists: " << list.playlist << std::endl;
 
       return 2;
