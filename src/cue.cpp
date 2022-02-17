@@ -24,17 +24,20 @@
 
 void CUE::parse(Entries &entries) {
   std::ifstream file(m_playlist);
-  std::string line, title;
+  std::string line, performer, title;
   bool invalidTrack(false), singleFileCueSheet(false);
 
-  std::getline(file, line);
-  while (line.empty())
-    std::getline(file, line);
-
-  if (line.rfind("TITLE", 0) != std::string::npos)
-    title = unquote(split(line, " ").second);
-
   while (!file.eof()) {
+    while ((line.rfind("FILE", 0) == std::string::npos) && !file.eof()) {
+      if (line.rfind("TITLE", 0) != std::string::npos)
+        title = unquote(split(line, " ").second);
+
+      if (line.rfind("PERFORMER", 0) != std::string::npos)
+        performer = unquote(split(line, " ").second);
+
+      std::getline(file, line);
+    }
+
     if (line.rfind("FILE", 0) != std::string::npos) {
       Entry entry;
       bool validTrack(false);
@@ -80,6 +83,7 @@ void CUE::parse(Entries &entries) {
         break;
 
       entry.playlist = m_playlist;
+      entry.playlistArtist = performer;
       entry.playlistTitle = title;
 
       entries.push_back(entry);
@@ -109,9 +113,12 @@ void CUE::parse(Entries &entries) {
 const bool CUE::write(const List &list) {
   std::ofstream file(m_playlist);
 
-  if (!flags[5])
+  if (!flags[5]) {
     if (!list.title.empty())
       file << "TITLE " << std::quoted(list.title) << std::endl;
+    if (!list.artist.empty())
+      file << "PERFORMER " << std::quoted(list.artist) << std::endl;
+  }
 
   for (const Entry &entry : list.entries) {
     std::string type;

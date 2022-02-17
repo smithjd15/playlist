@@ -32,11 +32,13 @@ void JSPF::parse(Entries &entries) {
   rapidjson::IStreamWrapper plWrapper(file);
   rapidjson::Document doc;
   rapidjson::ParseResult result(doc.ParseStream(plWrapper));
-  std::string image, title;
+  std::string creator, image, title;
 
   file.close();
 
   if (result && !file.bad() && doc.HasMember(JSPF_ROOT)) {
+    if (doc[JSPF_ROOT].HasMember("creator"))
+      creator = doc[JSPF_ROOT]["creator"].GetString();
     if (doc[JSPF_ROOT].HasMember("image"))
       image = doc[JSPF_ROOT]["image"].GetString();
     if (doc[JSPF_ROOT].HasMember("title"))
@@ -71,6 +73,7 @@ void JSPF::parse(Entries &entries) {
         entry.albumTrack = track["trackNum"].GetInt();
       entry.track = t;
       entry.playlist = m_playlist;
+      entry.playlistArtist = creator;
       entry.playlistImage = image;
       entry.playlistTitle = title;
 
@@ -140,6 +143,9 @@ const bool JSPF::write(const List &list) {
   if (!flags[5]) {
     if (!list.title.empty())
       doc[JSPF_ROOT].AddMember("title", StringRef(list.title.c_str()),
+                               doc.GetAllocator());
+    if (!list.artist.empty())
+      doc[JSPF_ROOT].AddMember("creator", StringRef(list.artist.c_str()),
                                doc.GetAllocator());
     if (!list.image.empty())
       doc[JSPF_ROOT].AddMember("image", StringRef(list.image.c_str()),

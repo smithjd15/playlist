@@ -55,7 +55,7 @@ void show(const List &list) {
   uint size(0);
   time_t duration;
   tm *dur;
-  std::string totalDur, totalImages, totalTitles;
+  std::string totalDur, totalArtists, totalImages, totalTitles;
 
   std::cout << "Track"
             << "\tStatus"
@@ -124,6 +124,9 @@ void show(const List &list) {
   totalDur += std::to_string(dur->tm_sec) + " seconds";
   totalDur += ")";
 
+  if (list.artists > 1)
+    totalArtists = " (of " + std::to_string(list.artists) + "!)";
+
   if (list.images > 1)
     totalImages = " (of " + std::to_string(list.images) + "!)";
 
@@ -141,6 +144,7 @@ void show(const List &list) {
             << totalDur << std::endl;
   std::cout << "Total known disk used: " << size << " MB" << std::endl;
   std::cout << "Known title: " << list.title << totalTitles << std::endl;
+  std::cout << "Known artist: " << list.artist << totalArtists << std::endl;
   std::cout << "Known image: " << list.image.string() << totalImages
             << std::endl;
 }
@@ -152,6 +156,9 @@ void list(const List &list) {
   const auto targetItem = [](const Entry &entry) {
     if (flags[7])
       return KeyValue(entry.playlist.string(), entry.target.string());
+
+    if (flags[33])
+      return KeyValue(entry.playlistArtist, entry.target.string());
 
     if (flags[26])
       return KeyValue(entry.playlistTitle, entry.target.string());

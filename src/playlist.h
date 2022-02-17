@@ -38,6 +38,7 @@ struct Entry {
   std::string comment;
   std::string identifier;
   std::string info;
+  std::string playlistArtist;
   std::string playlistTitle;
   std::string title;
   int albumTrack = 0;
@@ -52,13 +53,15 @@ struct Entry {
 
 typedef std::pair<const std::string, std::string> KeyValue;
 typedef std::vector<Entry> Entries;
-typedef std::bitset<32> Flags;
+typedef std::bitset<33> Flags;
 
 struct List {
   fs::path image;
   fs::path playlist;
+  std::string artist;
   std::string title;
   Entries entries;
+  int artists = 0;
   int dupeTargets = 0;
   int images = 0;
   int netImages = 0;

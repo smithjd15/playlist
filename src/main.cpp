@@ -33,7 +33,7 @@ void help() {
   std::cout << "playlist version " << VER << std::endl;
   std::cout << "Copyright (C) 2021, 2022 James D. Smith" << std::endl;
   std::cout << std::endl;
-  std::cout << "Usage: playlist [-l|-L|-P|-J|-K|-A|-T|-M|-E|-D|-G|-N "
+  std::cout << "Usage: playlist [-l|-L|-P|-J|-S|-K|-A|-T|-M|-E|-D|-G|-N "
                "all|dupe|image|net|netimg|unfound|unfoundimg|unique] [-p] "
                "[-f path] [-z] [[-O|-I]|[-R|-B path]] [-a [track:]target] "
                "[-e track:FIELD=value] "
@@ -50,8 +50,8 @@ void help() {
                "[-r track] [-d] [-u] [-n] [-m] "
 #endif
 #endif
-               "[-t title] [-g target] [-q] [-v] [-x] [-o] [-w outfile.ext] "
-               "infile..."
+               "[-b artist] [-t title] [-g target] [-q] [-v] [-x] [-o] "
+               "[-w outfile.ext] infile..."
             << std::endl;
   std::cout << std::endl;
   std::cout << "Options:" << std::endl;
@@ -59,6 +59,7 @@ void help() {
   std::cout << "\t-L LIST Tracks and targets" << std::endl;
   std::cout << "\t-P LIST Playlist and targets" << std::endl;
   std::cout << "\t-J LIST Playlist title and targets" << std::endl;
+  std::cout << "\t-S LIST Playlist artist and targets" << std::endl;
   std::cout << "\t-K LIST Playlist image and targets" << std::endl;
   std::cout << "\t-A LIST Artists and targets" << std::endl;
   std::cout << "\t-T LIST Titles and targets" << std::endl;
@@ -83,6 +84,7 @@ void help() {
   std::cout << "\t-I Out playlist local targets in file URI scheme (implied -O)"
             << std::endl;
   std::cout << "\t-t Set title for out playlist" << std::endl;
+  std::cout << "\t-b Set artist for out playlist" << std::endl;
   std::cout << "\t-g Set image for out playlist" << std::endl;
   std::cout << "\t-a Insert or append entry" << std::endl;
   std::cout << "\t-e track:FIELD=value Set entry field" << std::endl;
@@ -117,9 +119,9 @@ void help() {
   std::cout << "0: Success or quiet flag" << std::endl;
   std::cout
       << "1: Out playlist has unfound target entries or image targets; or "
-         "multiple images or titles; or a dupe or unfound list contains at "
-         "least one entry; or an in playlist was not found or was parsed with "
-         "errors"
+         "multiple artists, images, or titles; or a dupe or unfound list "
+         "contains at least one entry; or an in playlist was not found or was "
+         "parsed with errors"
 #ifdef TAGLIB
          "; or metadata could not be read from a target"
 #endif
@@ -129,7 +131,7 @@ void help() {
 
 int main(int argc, char **argv) {
   fs::path base, image, prepend;
-  std::string title;
+  std::string artist, title;
   List list;
   std::vector<std::string> addItems, changeItems;
 
@@ -161,27 +163,28 @@ int main(int argc, char **argv) {
   int c;
 #ifdef LIBCURL
 #ifdef TAGLIB
+  while (
+      (c = getopt(
+           argc, argv,
+           "a:A:b:B:dD:e:E:f:g:G:iIJ:K:l:L:mM:nN:oOpP:r:RsS:t:T:uvw:xzqh")) !=
+      -1) {
+#else
   while ((c = getopt(
               argc, argv,
-              "a:A:B:dD:e:E:f:g:G:iIJ:K:l:L:mM:nN:oOpP:r:Rst:T:uvw:xzqh")) !=
+              "a:A:b:B:dD:e:E:f:g:G:IJ:K:l:L:mM:nN:oOpP:r:RsS:t:T:uvw:xzqh")) !=
          -1) {
-#else
-  while (
-      (c = getopt(argc, argv,
-                  "a:A:B:dD:e:E:f:g:G:IJ:K:l:L:mM:nN:oOpP:r:Rst:T:uvw:xzqh")) !=
-      -1) {
 #endif
 #else
 #ifdef TAGLIB
-  while (
-      (c = getopt(argc, argv,
-                  "a:A:B:dD:e:E:f:g:G:iJ:K:Il:L:mM:nN:oOpP:r:Rt:T:uvw:xzqh")) !=
-      -1) {
+  while ((c = getopt(
+              argc, argv,
+              "a:A:b:B:dD:e:E:f:g:G:iJ:K:Il:L:mM:nN:oOpP:r:RS:t:T:uvw:xzqh")) !=
+         -1) {
 #else
-  while (
-      (c = getopt(argc, argv,
-                  "a:A:B:dD:e:E:f:g:G:IJ:K:l:L:mM:nN:oOpP:r:Rt:T:uvw:xzqh")) !=
-      -1) {
+  while ((c = getopt(
+              argc, argv,
+              "a:A:b:B:dD:e:E:f:g:G:IJ:K:l:L:mM:nN:oOpP:r:RS:t:T:uvw:xzqh")) !=
+         -1) {
 #endif
 #endif
     switch (c) {
@@ -193,6 +196,10 @@ int main(int argc, char **argv) {
       break;
     case 'a':
       addItems.emplace_back(optarg);
+
+      break;
+    case 'b':
+      artist = optarg;
 
       break;
     case 'B':
@@ -321,6 +328,12 @@ int main(int argc, char **argv) {
 
       break;
 #endif
+    case 'S':
+      flags[33] = true;
+
+      parseList(optarg);
+
+      break;
     case 't':
       title = optarg;
 
@@ -408,6 +421,14 @@ int main(int argc, char **argv) {
       }
     }
 
+    if (!it->playlistArtist.empty()) {
+      if (list.artist.empty() || (it->playlistArtist != list.artist))
+        list.artists++;
+
+      if (list.artist.empty())
+        list.artist = it->playlistArtist;
+    }
+
     if (!it->playlistTitle.empty()) {
       if (list.title.empty() || (it->playlistTitle != list.title))
         list.titles++;
@@ -465,6 +486,11 @@ int main(int argc, char **argv) {
       list.localImage = localTarget(list.image.string());
       list.validImage = validTarget(list.image);
       list.images = !image.empty();
+    }
+
+    if (!artist.empty()) {
+      list.artist = artist;
+      list.artists = !artist.empty();
     }
 
     if (!title.empty()) {
@@ -661,6 +687,10 @@ int main(int argc, char **argv) {
 
     if (!list.image.empty() && !list.validImage)
       cwar << "WARNING: out playlist image not found" << std::endl;
+
+    if (list.artists > 1)
+      cwar << "WARNING: 1 of " << list.artists
+           << " playlist artists auto-selected" << std::endl;
 
     if (list.images > 1)
       cwar << "WARNING: 1 of " << list.images

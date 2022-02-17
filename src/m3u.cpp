@@ -22,7 +22,7 @@
 
 void M3U::parse(Entries &entries) {
   std::ifstream file(m_playlist);
-  std::string image, line, title;
+  std::string artist, image, line, title;
   bool invalidExtInfo(false);
   std::regex regex(
       "[^\\s\"]+(?:\"[^\"]*\"[^\\s\"]*)*|(?:\"[^\"]*\"[^\\s\"]*)+");
@@ -33,6 +33,9 @@ void M3U::parse(Entries &entries) {
 
     while ((line.rfind("#EXTINF:", 0) == std::string::npos) &&
            (line.rfind("#", 0) != std::string::npos) && !file.eof()) {
+      if (line.rfind("#EXTART:", 0) != std::string::npos)
+        artist = split(line, ":").second;
+
       if (line.rfind("#EXTIMG:", 0) != std::string::npos)
         image = split(line, ":").second;
 
@@ -98,6 +101,7 @@ void M3U::parse(Entries &entries) {
       } else {
         entry.playlist = m_playlist;
       }
+      entry.playlistArtist = artist;
       entry.playlistImage = image;
       entry.playlistTitle = title;
       entry.target = line;
@@ -179,6 +183,8 @@ const bool M3U::write(const List &list) {
     file << "#EXTENC:UTF-8" << std::endl;
     if (!list.title.empty())
       file << "#PLAYLIST:" << list.title << std::endl;
+    if (!list.artist.empty())
+      file << "#EXTART:" << list.artist << std::endl;
     if (!list.image.empty())
       file << "#EXTIMG:" << list.image.string() << std::endl;
   }

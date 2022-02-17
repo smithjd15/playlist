@@ -30,12 +30,13 @@ void XSPF::parse(Entries &entries) {
   std::ifstream file(m_playlist);
   pugi::xml_parse_result result(playlist.load(file));
   pugi::xml_node trackList, track;
-  std::string image, title;
+  std::string creator, image, title;
 
   file.close();
 
   if (result && !file.bad() && playlist.child(XSPF_ROOT)) {
     trackList = playlist.child(XSPF_ROOT).child("trackList");
+    creator = playlist.child(XSPF_ROOT).child("creator").text().as_string();
     image = playlist.child(XSPF_ROOT).child("image").text().as_string();
     title = playlist.child(XSPF_ROOT).child("title").text().as_string();
 
@@ -56,6 +57,7 @@ void XSPF::parse(Entries &entries) {
       entry.track =
           std::distance<pugi::xml_node::iterator>(trackList.begin(), track) + 1;
       entry.playlist = m_playlist;
+      entry.playlistArtist = creator;
       entry.playlistImage = image;
       entry.playlistTitle = title;
 
@@ -126,6 +128,10 @@ const bool XSPF::write(const List &list) {
       playList.insert_child_before("title", trackList)
           .text()
           .set(list.title.c_str());
+    if (!list.artist.empty())
+      playList.insert_child_before("creator", trackList)
+          .text()
+          .set(list.artist.c_str());
     if (!list.image.empty())
       playList.insert_child_before("image", trackList)
           .text()
