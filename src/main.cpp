@@ -27,7 +27,7 @@
 
 #include <unistd.h>
 
-#define VER 1.43
+#define VER 2
 
 void help() {
   std::cout << "playlist version " << VER << std::endl;
