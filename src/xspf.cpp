@@ -114,6 +114,12 @@ const bool XSPF::write(const List &list) {
   }
 
   if (!flags[5]) {
+    if (list.relative) {
+      std::string base =
+          list.playlist.parent_path().string() + fs::path::preferred_separator;
+      playList.append_attribute("xml:base").set_value(base.c_str());
+    }
+
     if (!list.title.empty())
       playList.insert_child_before("title", trackList)
           .text()
