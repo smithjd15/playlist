@@ -2,7 +2,7 @@
 
 Playlist is a tool for media playlist files. It can convert between common playlist formats; change and remove metadata; concatenate multiple playlists; remove duplicate entries; randomize entry order; insert, append and remove entries; remove unfound target entries and image targets; identify unfound, unfound image, duplicate, network, network image, and unique (between multiple playlists) targets; get metadata from local targets; and transform local targets into absolute paths, or paths relative to the out playlist or any arbitrary path.
 
-Playlist supports the common title and duration metadata for m3u, pls, and xspf/jspf, and also creator (artist), album, annotation (comment), identifier, image, info, and album track for m3u and xspf/jspf. It also supports m3u and xspf/jspf playlist title and image, and cue TITLE (playlist title and title), PERFORMER (playlist artist and artist), and REM (comment).
+Playlist supports the common title and duration metadata for m3u, pls, and xspf/jspf, and also creator (artist), album, annotation (comment), identifier, image, info, and album track for m3u and xspf/jspf. It also supports m3u and xspf/jspf playlist artist, title, and image, and cue TITLE (playlist title and title), PERFORMER (playlist artist and artist), and REM (comment).
 
 ### Inspect
 #### Playlist can list all or certain targets, and provide an entry overview and summary.
@@ -138,9 +138,13 @@ playlist -n -w outlist.m3u inlist.m3u
 
 playlist -w outlist.m3u inlist.m3u appendlist.pls
 
-##### Example setting a playlist title (m3u or xspf/jspf):
+##### Example setting a playlist title (cue, m3u or xspf/jspf):
 
 playlist -t "Some Title" -w outlist.xspf inlist.xspf
+
+##### Example setting a playlist artist (cue, m3u or xspf/jspf):
+
+playlist -b "Some Creator" -w outlist.xspf inlist.xspf
 
 ##### Example setting a playlist image (m3u or xspf/jspf):
 
