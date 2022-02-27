@@ -27,7 +27,7 @@
 
 #include <unistd.h>
 
-#define VER 2
+#define VER 2.1
 
 void help() {
   std::cout << "playlist version " << VER << std::endl;
@@ -39,15 +39,15 @@ void help() {
                "[-e track:FIELD=value] "
 #ifdef LIBCURL
 #ifdef TAGLIB
-               "[-r track] [-s] [-i] [-d] [-u] [-n] [-m] "
+               "[-r track|target] [-s] [-i] [-d] [-u] [-n] [-m] "
 #else
-               "[-r track] [-s] [-d] [-u] [-n] [-m] "
+               "[-r track|target] [-s] [-d] [-u] [-n] [-m] "
 #endif
 #else
 #ifdef TAGLIB
-               "[-r track] [-i] [-d] [-u] [-n] [-m] "
+               "[-r track|target] [-i] [-d] [-u] [-n] [-m] "
 #else
-               "[-r track] [-d] [-u] [-n] [-m] "
+               "[-r track|target] [-d] [-u] [-n] [-m] "
 #endif
 #endif
                "[-b artist] [-t title] [-g target] [-q] [-v] [-x] [-o] "
@@ -88,7 +88,7 @@ void help() {
   std::cout << "\t-g Set image for out playlist" << std::endl;
   std::cout << "\t-a Insert or append entry" << std::endl;
   std::cout << "\t-e track:FIELD=value Set entry field" << std::endl;
-  std::cout << "\t-r Remove entry (same as -e track:ta=)" << std::endl;
+  std::cout << "\t-r Remove entry matching track or target" << std::endl;
   std::cout << "\t-d Remove duplicate entries from out playlist" << std::endl;
   std::cout << "\t-u Remove unfound target entries and image targets from out "
                "playlist"
@@ -133,7 +133,7 @@ int main(int argc, char **argv) {
   fs::path base, image, prepend;
   std::string artist, title;
   List list;
-  std::vector<std::string> addItems, changeItems;
+  std::vector<std::string> addItems, changeItems, removeItems;
 
   auto parseList = [](const std::string &arg) {
     flags[1] = (arg == "all");
@@ -315,7 +315,7 @@ int main(int argc, char **argv) {
 
       break;
     case 'r':
-      changeItems.emplace_back(std::string(optarg) + ":ta=");
+      removeItems.emplace_back(optarg);
 
       break;
     case 'R':
@@ -589,6 +589,19 @@ int main(int argc, char **argv) {
       for (Entry &entry : list.entries)
         if (entry.track == std::stoi(track))
           setEntry(entry);
+    }
+
+    for (const std::string &removeItem : removeItems) {
+      for (Entry &entry : list.entries) {
+        if (std::all_of(removeItem.begin(), removeItem.end(), isdigit)) {
+          if (entry.track == std::stoi(removeItem))
+            entry.target.clear();
+        } else {
+          if (absPath(fs::current_path(), entry.target) ==
+              absPath(fs::current_path(), removeItem))
+            entry.target.clear();
+        }
+      }
     }
 
     if (flags[6])

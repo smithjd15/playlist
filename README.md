@@ -96,7 +96,7 @@ playlist -I -w outlist.m3u inlist.m3u
 ### Reconstruct
 #### Playlist can insert or append, change, and remove entries, drop duplicate and unfound target entries and images, randomize the order of entries, and concatenate multiple playlists.
 
-The -a and -e options can be used more than once.
+The -a, -e, and -r options can be used more than once.
 
 ##### Example inserting an entry:
 
@@ -118,8 +118,10 @@ playlist -e 23:du=254 -w outlist.m3u inlist.m3u
 
 playlist -e 23:ti= -w outlist.m3u inlist.m3u
 
-##### Example removing an entry:
+##### Examples removing an entry:
 
+playlist -r 22 -w outlist.m3u inlist.m3u  
+playlist -r foo/bar/target.ext -w outlist.m3u inlist.m3u  
 playlist -e 22:ta= -w outlist.m3u inlist.m3u
 
 ##### Example removing duplicate entries:
