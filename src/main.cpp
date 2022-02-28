@@ -27,7 +27,7 @@
 
 #include <unistd.h>
 
-#define VER 2.1
+#define VER 2.2
 
 void help() {
   std::cout << "playlist version " << VER << std::endl;
@@ -694,24 +694,26 @@ int main(int argc, char **argv) {
       cwar << "WARNING: out playlist has " << list.unfoundTargets
            << " unfound entry target(s)" << std::endl;
 
-    if (list.unfoundImages > 0)
-      cwar << "WARNING: out playlist has " << list.unfoundImages
-           << " unfound entry image target(s)" << std::endl;
+    if (!flags[18]) {
+      if (list.unfoundImages > 0)
+        cwar << "WARNING: out playlist has " << list.unfoundImages
+             << " unfound entry image target(s)" << std::endl;
 
-    if (!list.image.empty() && !list.validImage)
-      cwar << "WARNING: out playlist image not found" << std::endl;
+      if (!list.image.empty() && !list.validImage)
+        cwar << "WARNING: out playlist image not found" << std::endl;
 
-    if (list.artists > 1)
-      cwar << "WARNING: 1 of " << list.artists
-           << " playlist artists auto-selected" << std::endl;
+      if (list.artists > 1)
+        cwar << "WARNING: 1 of " << list.artists
+             << " playlist artists auto-selected" << std::endl;
 
-    if (list.images > 1)
-      cwar << "WARNING: 1 of " << list.images
-           << " playlist images auto-selected" << std::endl;
+      if (list.images > 1)
+        cwar << "WARNING: 1 of " << list.images
+             << " playlist images auto-selected" << std::endl;
 
-    if (list.titles > 1)
-      cwar << "WARNING: 1 of " << list.titles
-           << " playlist titles auto-selected" << std::endl;
+      if (list.titles > 1)
+        cwar << "WARNING: 1 of " << list.titles
+             << " playlist titles auto-selected" << std::endl;
+    }
 
     if (flags[30]) {
       show(list);
