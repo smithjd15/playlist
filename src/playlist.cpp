@@ -147,6 +147,9 @@ void show(const List &list) {
   std::cout << "Known artist: " << list.artist << totalArtists << std::endl;
   std::cout << "Known image: " << list.image.string() << totalImages
             << std::endl;
+
+  if (cwar.rdbuf()->in_avail() > 0)
+    std::cout << std::endl;
 }
 
 void list(const List &list) {
