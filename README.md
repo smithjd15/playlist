@@ -118,7 +118,7 @@ playlist -e 23:du=254 -w outlist.m3u inlist.m3u
 
 playlist -e 23:ti= -w outlist.m3u inlist.m3u
 
-##### Examples removing an entry:
+##### Examples removing matching entries:
 
 playlist -r 22 -w outlist.m3u inlist.m3u  
 playlist -r foo/bar/target.ext -w outlist.m3u inlist.m3u  
