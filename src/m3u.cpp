@@ -48,7 +48,6 @@ void M3U::parse(Entries &entries) {
     if (line.rfind("#EXTINF:", 0) != std::string::npos) {
       std::size_t pos = line.find_first_of(",");
       std::string info;
-      float duration;
 
       if (!invalidExtInfo) {
         invalidExtInfo = (pos > line.size());
@@ -61,9 +60,7 @@ void M3U::parse(Entries &entries) {
       info = line.substr(8, pos - 8);
       pos = info.find_first_of(' ');
 
-      duration = std::stoi(info.substr(0, pos));
-      if (duration > 0)
-        entry.duration = duration;
+      entry.duration = std::stoi(info.substr(0, pos));
 
       info = info.substr(pos + 1);
       std::sregex_iterator it(info.begin(), info.end(), regex), end;
