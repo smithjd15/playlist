@@ -101,29 +101,29 @@ const bool PLS::write(const List &list) {
   file << std::endl;
 
   for (const Entry &entry : list.entries) {
+    bool targetOnly =
+        (entry.artist.empty() && entry.title.empty() && (entry.duration == 0));
+
     file << "File" << entry.track << "=" << entry.target.string() << std::endl;
 
-    if (!flags[18]) {
-      if (!entry.artist.empty() || !entry.title.empty() ||
-          (entry.duration > 0)) {
-        if (!entry.artist.empty() || !entry.title.empty()) {
-          file << "Title" << entry.track << "=" << entry.artist;
+    if (!targetOnly && !flags[18]) {
+      if (!entry.artist.empty() || !entry.title.empty()) {
+        file << "Title" << entry.track << "=" << entry.artist;
 
-          if (!entry.artist.empty() && !entry.title.empty())
-            file << " - ";
+        if (!entry.artist.empty() && !entry.title.empty())
+          file << " - ";
 
-          file << entry.title << std::endl;
-        }
-
-        if (entry.duration > 0) {
-          file << "Length" << entry.track << "=" << std::round(entry.duration)
-               << std::endl;
-        } else if (!entry.localTarget) {
-          file << "Length=-1" << std::endl;
-        }
+        file << entry.title << std::endl;
       }
 
-      if (entry.track != (int)list.entries.size())
+      if (entry.duration > 0) {
+        file << "Length" << entry.track << "=" << std::round(entry.duration)
+             << std::endl;
+      } else if (!entry.localTarget) {
+        file << "Length=-1" << std::endl;
+      }
+
+      if (!targetOnly && (entry.track != (int)list.entries.size()))
         file << std::endl;
     }
   }
