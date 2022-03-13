@@ -47,7 +47,7 @@ void XSPF::parse(Entries &entries) {
       entry.album = track.child("album").text().as_string();
       entry.comment = track.child("annotation").text().as_string();
       entry.artist = track.child("creator").text().as_string();
-      entry.duration = track.child("duration").text().as_int() / 1000.0;
+      entry.duration = track.child("duration").text().as_float();
       entry.identifier = track.child("identifier").text().as_string();
       entry.image = track.child("image").text().as_string();
       entry.info = track.child("info").text().as_string();
@@ -103,7 +103,7 @@ const bool XSPF::write(const List &list) {
       if (entry.duration > 0)
         track.append_child("duration")
             .text()
-            .set(std::to_string((int)(entry.duration * 1000)).c_str());
+            .set(std::to_string((int)entry.duration).c_str());
       if (!entry.identifier.empty())
         track.append_child("identifier").text().set(entry.identifier.c_str());
       if (!entry.image.empty())

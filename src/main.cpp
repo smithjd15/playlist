@@ -576,7 +576,7 @@ int main(int argc, char **argv) {
         } else if (key == "du") {
           if (!std::all_of(value.begin(), value.end(), isdigit))
             invalid();
-          entry.duration = value.empty() ? 0 : std::stoi(value);
+          entry.duration = value.empty() ? 0 : (std::stoi(value) * 1000);
         } else {
           invalid();
         }

@@ -25,6 +25,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <filesystem>
 #include <iomanip>
 #include <ios>
@@ -51,9 +52,8 @@ Flags flags;
 std::stringstream cwar;
 
 void show(const List &list) {
-  int totalDuration(0);
+  time_t totalDuration(0);
   uint size(0);
-  time_t duration;
   tm *dur;
   std::string totalDur, totalArtists, totalImages, totalTitles;
 
@@ -70,7 +70,9 @@ void show(const List &list) {
                             ? entry.artist + " - " + entry.title
                             : entry.title,
                 status;
-    float duration = (!entry.validTarget && flags[30]) ? 0 : entry.duration;
+    int duration = (!entry.validTarget && flags[30])
+                       ? 0
+                       : std::round(entry.duration / 1000);
 
     if (!entry.image.empty()) {
       if (!entry.localImage)
@@ -111,8 +113,8 @@ void show(const List &list) {
 
   size = size / 1024 / 1024;
 
-  duration = totalDuration;
-  dur = gmtime(&duration);
+  totalDuration = totalDuration / 1000;
+  dur = gmtime(&totalDuration);
 
   totalDur = "(";
   if (dur->tm_yday > 0)
@@ -140,7 +142,7 @@ void show(const List &list) {
             << "\t[U]nfound: " << list.unfoundTargets << std::endl;
   std::cout << "Entries: " << list.entries.size() << std::endl;
   std::cout << std::endl;
-  std::cout << "Total known duration: " << totalDuration << " seconds "
+  std::cout << "Total known duration: " << std::round(totalDuration) << " seconds "
             << totalDur << std::endl;
   std::cout << "Total known disk used: " << size << " MB" << std::endl;
   std::cout << "Known title: " << list.title << totalTitles << std::endl;
@@ -275,7 +277,7 @@ void fetchMetadata(Entry &entry) {
     entry.albumTrack = file.tag()->track();
     entry.artist = file.tag()->artist().toCString();
     entry.comment = file.tag()->comment().toCString();
-    entry.duration = file.audioProperties()->lengthInSeconds();
+    entry.duration = file.audioProperties()->lengthInMilliseconds();
     entry.title = file.tag()->title().toCString();
   } else {
     cwar << "Could not read target tag: " << entry.target << std::endl;

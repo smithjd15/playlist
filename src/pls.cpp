@@ -50,7 +50,7 @@ void PLS::parse(Entries &entries) {
           entry.title = split(line).second;
 
         if (line.rfind("Length" + std::to_string(t), 0) != std::string::npos)
-          entry.duration = std::stoi(split(line).second);
+          entry.duration = std::stoi(split(line).second) * 1000;
 
         std::getline(file, line);
       }
@@ -117,7 +117,7 @@ const bool PLS::write(const List &list) {
       }
 
       if (entry.duration > 0) {
-        file << "Length" << entry.track << "=" << std::round(entry.duration)
+        file << "Length" << entry.track << "=" << std::round(entry.duration / 1000)
              << std::endl;
       } else if (!entry.localTarget) {
         file << "Length" << entry.track << "=-1" << std::endl;

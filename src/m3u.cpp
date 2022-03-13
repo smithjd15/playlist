@@ -60,7 +60,7 @@ void M3U::parse(Entries &entries) {
       info = line.substr(8, pos - 8);
       pos = info.find_first_of(' ');
 
-      entry.duration = std::stoi(info.substr(0, pos));
+      entry.duration = std::stoi(info.substr(0, pos)) * 1000;
 
       info = info.substr(pos + 1);
       std::sregex_iterator it(info.begin(), info.end(), regex), end;
@@ -136,7 +136,7 @@ const bool M3U::write(const List &list) {
       extInf << std::endl;
       extInf << "#EXTINF:";
       if (entry.duration > 0) {
-        extInf << std::round(entry.duration);
+        extInf << std::round(entry.duration / 1000);
       } else {
         extInf << "-1";
       }
