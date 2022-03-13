@@ -76,7 +76,7 @@ void help() {
   std::cout << "\t-z Ignore in playlist parse errors" << std::endl;
   std::cout << "\t-w Out playlist file (.cue, .jspf, .m3u, .pls, .xspf)"
             << std::endl;
-  std::cout << "\t-o Clobber out playlist" << std::endl;
+  std::cout << "\t-o Clobber playlist (with -w out; or first in)" << std::endl;
   std::cout << "\t-R Out playlist local targets relative to out playlist"
             << std::endl;
   std::cout << "\t-B Out playlist local targets base path" << std::endl;
@@ -391,6 +391,9 @@ int main(int argc, char **argv) {
                   << " from playlist file: " << inPl << std::endl;
 
       list.entries.insert(list.entries.end(), entries.begin(), entries.end());
+
+      if (list.playlist.empty() && flags[22])
+        list.playlist = inPl;
     } else {
       cwar << "Skipping unfound file: " << inPl << std::endl;
     }
