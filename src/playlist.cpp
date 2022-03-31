@@ -114,7 +114,7 @@ void show(const List &list) {
   size = size / 1024 / 1024;
 
   totalDuration = totalDuration / 1000;
-  dur = gmtime(&totalDuration);
+  dur = std::gmtime(&totalDuration);
 
   totalDur = "(";
   if (dur->tm_yday > 0)
@@ -285,7 +285,48 @@ void fetchMetadata(Entry &entry) {
 }
 #endif
 
-const std::string processUri(std::string uri) {
+const std::string processTarget(std::string target) {
+  target = percentDecode(target);
+
+  if (target.rfind("~/", 0) != std::string::npos)
+    target = getenv("HOME") + target.substr(1);
+
+  if (target.rfind("file:///", 0) != std::string::npos) {
+    target = target.substr(7);
+  } else if (target.rfind("file:/", 0) != std::string::npos) {
+    target = target.substr(5);
+  }
+
+  if (target.rfind(fs::path::preferred_separator + std::string(".."), 0) !=
+      std::string::npos)
+    target = target.substr(1);
+
+  return target;
+}
+
+const std::string unquote(std::string str) {
+  std::istringstream unquote(str);
+  unquote >> std::quoted(str);
+
+  return str;
+}
+
+const std::string percentEncode(const std::string &uri) {
+  std::ostringstream uriOut;
+  std::regex r("[!:\\/\\-._~0-9A-Za-z]");
+
+  for (const char &c : uri) {
+    if (std::regex_match(std::string({c}), r)) {
+      uriOut << c;
+    } else {
+      uriOut << "%" << std::uppercase << std::hex << (0xff & c);
+    }
+  }
+
+  return uriOut.str();
+}
+
+const std::string percentDecode(std::string uri) {
   int len = uri.size() - 2;
 
   for (int i = 0; i < len; i++) {
@@ -303,42 +344,7 @@ const std::string processUri(std::string uri) {
     len = uri.size() - 2;
   }
 
-  if (uri.rfind("~/", 0) != std::string::npos)
-    uri = getenv("HOME") + uri.substr(1);
-
-  if (uri.rfind("file:///", 0) != std::string::npos) {
-    uri = uri.substr(7);
-  } else if (uri.rfind("file:/", 0) != std::string::npos) {
-    uri = uri.substr(5);
-  }
-
-  if (uri.rfind(fs::path::preferred_separator + std::string(".."), 0) !=
-      std::string::npos)
-    uri = uri.substr(1);
-
   return uri;
-}
-
-const std::string unquote(std::string quoted) {
-  std::istringstream unquote(quoted);
-  unquote >> std::quoted(quoted);
-
-  return quoted;
-}
-
-const std::string encodeUri(const std::string &uri) {
-  std::ostringstream uriOut;
-  std::regex r("[!:\\/\\-._~0-9A-Za-z]");
-
-  for (const char &c : uri) {
-    if (std::regex_match(std::string({c}), r)) {
-      uriOut << c;
-    } else {
-      uriOut << "%" << std::uppercase << std::hex << (0xff & c);
-    }
-  }
-
-  return uriOut.str();
 }
 
 const fs::path absPath(const fs::path &p1, const fs::path &p2) {
@@ -437,5 +443,5 @@ Playlist *playlist(const fs::path &playlist) {
   std::cerr << "Unsupported file format: " << playlist.extension().string()
             << std::endl;
 
-  exit(2);
+  std::exit(2);
 }

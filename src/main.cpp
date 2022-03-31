@@ -50,7 +50,7 @@ void help() {
                "[-r track|target] [-d] [-u] [-n] [-m] "
 #endif
 #endif
-               "[-b artist] [-t title] [-g target] [-q] [-v] [-x] [-o] "
+               "[-b artist] [-t title] [-g image] [-q] [-v] [-x] [-o] "
                "[-w outfile.ext] infile..."
             << std::endl;
   std::cout << std::endl;
@@ -68,8 +68,9 @@ void help() {
   std::cout << "\t-D LIST Identifiers and targets" << std::endl;
   std::cout << "\t-G LIST Image and targets" << std::endl;
   std::cout << "\t-N LIST Info and targets" << std::endl;
-  std::cout << "\t-p List all targets in absolute paths (same as -O -l all)"
-            << std::endl;
+  std::cout
+      << "\t-p List all entry targets in absolute paths (same as -O -l all)"
+      << std::endl;
   std::cout << std::endl;
   std::cout << "\t-x Preview changes (with -w)" << std::endl;
   std::cout << "\t-f In playlist relative local target base path" << std::endl;
@@ -90,8 +91,7 @@ void help() {
   std::cout << "\t-e track:FIELD=value Set entry field" << std::endl;
   std::cout << "\t-r Remove entry matching track or target" << std::endl;
   std::cout << "\t-d Remove duplicate entries from out playlist" << std::endl;
-  std::cout << "\t-u Remove unfound target entries and image targets from out "
-               "playlist"
+  std::cout << "\t-u Remove unfound target entries and images from out playlist"
             << std::endl;
   std::cout << "\t-n Out playlist entries in random order" << std::endl;
   std::cout << "\t-m Minimal out playlist (targets only)" << std::endl;
@@ -118,10 +118,10 @@ void help() {
   std::cout << "Exit codes:" << std::endl;
   std::cout << "0: Success or quiet flag" << std::endl;
   std::cout
-      << "1: Out playlist has unfound target entries or image targets; or "
-         "multiple artists, images, or titles; or a dupe or unfound list "
-         "contains at least one entry; or an in playlist was not found or was "
-         "parsed with errors"
+      << "1: Out playlist has unfound entry targets or images; or multiple "
+         "artists, images, or titles; or a dupe or unfound list contains at "
+         "least one entry; or an in playlist was not found or was parsed with "
+         "errors"
 #ifdef TAGLIB
          "; or metadata could not be read from a target"
 #endif
@@ -150,7 +150,7 @@ int main(int argc, char **argv) {
     fs::path target = absPath(basePath, path);
 
     if (flags[14]) {
-      path = "file://" + encodeUri(target);
+      path = "file://" + percentEncode(target);
     } else if (flags[23]) {
       path = target;
     } else if (flags[25]) {
@@ -402,7 +402,7 @@ int main(int argc, char **argv) {
   for (Entries::iterator it = list.entries.begin(); it != list.entries.end();
        it++) {
     auto computeTargets = [&](fs::path &target, bool &local, bool &valid) {
-      target = processUri(target.string());
+      target = processTarget(target.string());
 
       if (!prepend.empty())
         target = absPath(prepend, target);
@@ -412,7 +412,7 @@ int main(int argc, char **argv) {
     };
 
     if (!it->playlistImage.empty()) {
-      fs::path plImage = processUri(it->playlistImage.string());
+      fs::path plImage = processTarget(it->playlistImage.string());
 
       if (list.image.empty() || (plImage != list.image))
         list.images++;
@@ -512,7 +512,7 @@ int main(int argc, char **argv) {
           std::all_of(pair.first.begin(), pair.first.end(), isdigit)) {
         int track = std::stoi(pair.first);
 
-        entry.target = processUri(pair.second);
+        entry.target = processTarget(pair.second);
         entry.track = track;
 
         if ((track - 1) < list.entries.size()) {
@@ -521,7 +521,7 @@ int main(int argc, char **argv) {
           index = list.entries.end();
         }
       } else {
-        entry.target = processUri(addItem);
+        entry.target = processTarget(addItem);
         entry.track = list.entries.size() + 1;
 
         index = list.entries.end();
@@ -550,7 +550,7 @@ int main(int argc, char **argv) {
         entry.playlist = fs::current_path().append(".");
 
         if (key == "ta") {
-          entry.target = processUri(value);
+          entry.target = processTarget(value);
           entry.localTarget = localTarget(entry.target.string());
           entry.validTarget = validTarget(entry.target);
         } else if (key == "ar") {
@@ -564,7 +564,7 @@ int main(int argc, char **argv) {
         } else if (key == "id") {
           entry.identifier = value;
         } else if (key == "im") {
-          entry.image = processUri(value);
+          entry.image = processTarget(value);
           entry.localImage = localTarget(entry.image.string());
           entry.validImage = validTarget(entry.image);
         } else if (key == "in") {
@@ -629,7 +629,7 @@ int main(int argc, char **argv) {
         transformPath(it->playlist.parent_path(), it->target);
 
         it->validTarget = fs::exists(
-            absPath(list.playlist.parent_path(), processUri(it->target)));
+            absPath(list.playlist.parent_path(), processTarget(it->target)));
       }
 
       if (!it->image.empty()) {
@@ -638,7 +638,7 @@ int main(int argc, char **argv) {
         } else if (it->localImage) {
           transformPath(it->playlist.parent_path(), it->image);
           it->validImage = fs::exists(
-              absPath(list.playlist.parent_path(), processUri(it->image)));
+              absPath(list.playlist.parent_path(), processTarget(it->image)));
         }
       }
 
@@ -654,7 +654,7 @@ int main(int argc, char **argv) {
         if (list.localImage) {
           transformPath(list.playlist.parent_path(), list.image);
           list.validImage = fs::exists(
-              absPath(list.playlist.parent_path(), processUri(list.image)));
+              absPath(list.playlist.parent_path(), processTarget(list.image)));
         }
       }
     }
@@ -700,7 +700,7 @@ int main(int argc, char **argv) {
     if (!flags[18]) {
       if (list.unfoundImages > 0)
         cwar << "WARNING: out playlist has " << list.unfoundImages
-             << " unfound entry image target(s)" << std::endl;
+             << " unfound entry image(s)" << std::endl;
 
       if (!list.image.empty() && !list.validImage)
         cwar << "WARNING: out playlist image not found" << std::endl;

@@ -1,38 +1,38 @@
 # Playlist
 
-Playlist is a tool for media playlist files. It can convert between common playlist formats; change and remove metadata; concatenate multiple playlists; remove duplicate entries; randomize entry order; insert, append and remove entries; remove unfound target entries and image targets; identify unfound, unfound image, duplicate, network, network image, and unique (between multiple playlists) targets; get metadata from local targets; and transform local targets into absolute paths, or paths relative to the out playlist or any arbitrary path.
+Playlist is a tool for media playlist files. It can convert between common playlist formats; change and remove metadata; concatenate multiple playlists; remove duplicate entries; randomize entry order; insert, append and remove entries; remove unfound target entries and images; identify unfound or network targets or images, and identify duplicate or unique (between multiple playlists) targets; get metadata from local targets; and transform local targets and images into absolute paths, or paths relative to the out playlist or any arbitrary path.
 
 Playlist supports the common title and duration metadata for m3u, pls, and xspf/jspf, and also creator (artist), album, annotation (comment), identifier, image, info, and album track for m3u and xspf/jspf. It also supports m3u and xspf/jspf playlist artist, title, and image, and cue TITLE (playlist title and title), PERFORMER (playlist artist and artist), and REM (comment).
 
 ### Inspect
-#### Playlist can list all or certain targets, and provide an entry overview and summary.
+#### Playlist can list all or certain targets or images, and provide an entry overview and summary.
 
-To list playlist targets, pick one of the following options,
-
--l, list targets only.  
--L, list track with targets.  
--P, list playlists with targets.  
--S, list playlist artist with targets.  
--J, list playlist title with targets.  
--K, list playlist image with targets.  
--A, list artists with targets.  
--T, list titles with targets.  
--M, list albums with targets.  
--E, list comments with targets.  
--D, list identifiers with targets.  
--G, list image with targets.  
--N, list info with targets.  
-
-and combine it with one of the following modifiers:
+Pick one of the following list options,
 
 all, list all entry targets;  
 dupe, list duplicate entry targets;  
-image, list all entry image targets;  
+image, list all entry images;  
 net, list entry network streams;  
-netimg, list entry network image targets;  
+netimg, list entry network images;  
 unfound, list entry unfound targets (-s to also verify network targets);  
-unfoundimg, list entry unfound image targets (-s to also verify network targets);  
-unique, list entry targets unique to a playlist.  
+unfoundimg, list entry unfound images (-s to also verify network targets);  
+unique, list entry targets unique to a playlist;  
+
+and append it to one of the following flags:
+
+-l, list targets or images only.  
+-L, list track with targets or images.  
+-P, list playlists with targets or images.  
+-S, list playlist artist with targets or images.  
+-J, list playlist title with targets or images.  
+-K, list playlist image with targets or images.  
+-A, list artists with targets or images.  
+-T, list titles with targets or images.  
+-M, list albums with targets or images.  
+-E, list comments with targets or images.  
+-D, list identifiers with targets or images.  
+-G, list image with targets or images.  
+-N, list info with targets or images.  
 
 ##### Example listing all targets:
 
@@ -64,7 +64,7 @@ playlist -x -u -R -w foo/outlist.m3u inlist.m3u
 playlist -L all -x -u -R -w bar/outlist.m3u inlist.m3u
 
 ### Convert
-#### Playlist can convert between m3u, pls, cue, xspf and jspf formats.
+#### Playlist can convert between cue, m3u, pls, xspf and jspf formats.
 
 ##### Example converting an m3u to an xspf:
 
@@ -75,21 +75,21 @@ playlist -w outlist.xspf inlist.m3u
 playlist -m -w outlist.pls inlist.xspf
 
 ### Transform
-#### Playlist can transform targets absolutely or relatively.
+#### Playlist can transform local target and image paths absolutely or relatively.
 
-##### Example relocating an xspf, transforming the targets to paths relative to foo:
+##### Example relocating an xspf, transforming paths relative to foo:
 
 playlist -R -w foo/outlist.xspf inlist.xspf
 
-##### Example transforming the targets of an xspf to paths relative to /foo/bar:
+##### Example transforming paths relative to /foo/bar:
 
 playlist -B /foo/bar -w outlist.xspf inlist.xspf
 
-##### Example transforming the targets of an m3u into absolute paths:
+##### Example transforming paths absolutely:
 
 playlist -O -w outlist.m3u inlist.m3u
 
-##### Example uri-encoding the targets of an m3u into absolute paths:
+##### Example transforming paths absolutely and into file URI scheme:
 
 playlist -I -w outlist.m3u inlist.m3u
 

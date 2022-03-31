@@ -28,7 +28,6 @@ void PLS::parse(Entries &entries) {
   bool plsSection(false);
   int plsEntries(0), plsVersion(0);
 
-  std::getline(file, line);
   while (line.empty())
     std::getline(file, line);
 
@@ -37,9 +36,9 @@ void PLS::parse(Entries &entries) {
 
   int t = 1;
   while (!file.eof() && (plsSection || flags[31])) {
-    Entry entry;
-
     if (line.rfind("File" + std::to_string(t), 0) != std::string::npos) {
+      Entry entry;
+
       entry.target = split(line).second;
 
       while ((line.rfind("File" + std::to_string(t + 1), 0) ==

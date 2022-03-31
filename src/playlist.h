@@ -91,9 +91,10 @@ void list(const List &list);
 void fetchMetadata(Entry &entry);
 #endif
 
-const std::string processUri(std::string uri);
+const std::string processTarget(std::string target);
 const std::string unquote(std::string quoted);
-const std::string encodeUri(const std::string &uri);
+const std::string percentEncode(const std::string &uri);
+const std::string percentDecode(std::string uri);
 const fs::path absPath(const fs::path &p1, const fs::path &p2);
 const KeyValue split(const std::string &line, std::string delim = "=");
 const bool localTarget(const std::string &target);
