@@ -34,7 +34,7 @@ void help() {
   std::cout << "Copyright (C) 2021, 2022 James D. Smith" << std::endl;
   std::cout << std::endl;
   std::cout << "Usage: playlist [-l|-L|-P|-J|-S|-K|-A|-T|-M|-E|-D|-G|-N "
-               "all|dupe|image|net|netimg|unfound|unfoundimg|unique] [-p] "
+               "dupe|image|net|netimg|target|unfound|unfoundimg|unique] [-p] "
                "[-f path] [-z] [[-O|-I]|[-R|-B path]] [-a [track:]target] "
                "[-e track:FIELD=value] "
 #ifdef LIBCURL
@@ -69,7 +69,7 @@ void help() {
   std::cout << "\t-G LIST Image and targets" << std::endl;
   std::cout << "\t-N LIST Info and targets" << std::endl;
   std::cout
-      << "\t-p List all entry targets in absolute paths (same as -O -l all)"
+      << "\t-p List all entry targets in absolute paths (same as -O -l target)"
       << std::endl;
   std::cout << std::endl;
   std::cout << "\t-x Preview changes (with -w)" << std::endl;
@@ -111,7 +111,7 @@ void help() {
          "(co)mment, (id)entifier, (im)age, (in)fo, album (tr)ack, (du)ration"
       << std::endl;
   std::cout << std::endl;
-  std::cout << "LIST can be one of: all, dupe, image, net, netimg, unfound, "
+  std::cout << "LIST can be one of: dupe, image, net, netimg, target, unfound, "
                "unfoundimg, or unique (multiple infiles)"
             << std::endl;
   std::cout << std::endl;
@@ -136,11 +136,11 @@ int main(int argc, char **argv) {
   std::vector<std::string> addItems, changeItems, removeItems;
 
   auto parseList = [](const std::string &arg) {
-    flags[1] = (arg == "all");
     flags[2] = (arg == "dupe");
     flags[3] = (arg == "image");
     flags[4] = (arg == "net");
     flags[5] = (arg == "netimg");
+    flags[1] = (arg == "target");
     flags[6] = (arg == "unfound");
     flags[7] = (arg == "unfoundimg");
     flags[8] = (arg == "unique");

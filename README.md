@@ -9,11 +9,11 @@ Playlist supports the common title and duration metadata for m3u, pls, and xspf/
 
 Pick one of the following list options,
 
-all, list all entry targets;  
 dupe, list duplicate entry targets;  
 image, list all entry images;  
 net, list entry network streams;  
 netimg, list entry network images;  
+target, list all entry targets;  
 unfound, list entry unfound targets (-s to also verify network targets);  
 unfoundimg, list entry unfound images (-s to also verify network targets);  
 unique, list entry targets unique to a playlist;  
@@ -36,7 +36,7 @@ and append it to one of the following flags:
 
 ##### Example listing all targets:
 
-playlist -l all inlist.m3u
+playlist -l target inlist.m3u
 
 ##### Example listing duplicate targets and identifiers:
 
@@ -61,7 +61,7 @@ playlist inlist.m3u
 ##### Examples previewing changes without writing the out playlist:
 
 playlist -x -u -R -w foo/outlist.m3u inlist.m3u  
-playlist -L all -x -u -R -w bar/outlist.m3u inlist.m3u
+playlist -L target -x -u -R -w bar/outlist.m3u inlist.m3u
 
 ### Convert
 #### Playlist can convert between cue, m3u, pls, xspf and jspf formats.
