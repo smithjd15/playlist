@@ -55,7 +55,7 @@ void show(const List &list) {
   time_t totalDuration(0);
   uint size(0);
   tm *dur;
-  std::string totalDur, totalArtists, totalImages, totalTitles;
+  std::string totalArtists, totalDur, totalImages, totalSize, totalTitles;
 
   std::cout << "Track"
             << "\tStatus"
@@ -111,7 +111,9 @@ void show(const List &list) {
   if (list.localImage && list.validImage)
     size += fs::file_size(list.image);
 
-  size = size / 1024 / 1024;
+  totalSize = "(";
+  totalSize += std::to_string((int)std::ceil(size / 1024.0 / 1024.0));
+  totalSize += " MB)";
 
   totalDuration = totalDuration / 1000;
   dur = std::gmtime(&totalDuration);
@@ -144,7 +146,8 @@ void show(const List &list) {
   std::cout << std::endl;
   std::cout << "Total known duration: " << std::round(totalDuration) << " seconds "
             << totalDur << std::endl;
-  std::cout << "Total known disk used: " << size << " MB" << std::endl;
+  std::cout << "Total known disk used: " << size << " bytes " << totalSize
+            << std::endl;
   std::cout << "Known title: " << list.title << totalTitles << std::endl;
   std::cout << "Known artist: " << list.artist << totalArtists << std::endl;
   std::cout << "Known image: " << list.image.string() << totalImages
