@@ -286,7 +286,8 @@ void fetchMetadata(Entry &entry) {
 #endif
 
 const std::string processTarget(std::string target) {
-  target = percentDecode(target);
+  if (target.find("%") != std::string::npos)
+    target = percentDecode(target);
 
   if (target.rfind("~/", 0) != std::string::npos)
     target = getenv("HOME") + target.substr(1);
