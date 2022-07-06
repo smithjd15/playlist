@@ -27,10 +27,8 @@
 
 #include <unistd.h>
 
-#define VER 2.3
-
 void help() {
-  std::cout << "playlist version " << VER << std::endl;
+  std::cout << "playlist version " << ver << std::endl;
   std::cout << "Copyright (C) 2021, 2022 James D. Smith" << std::endl;
   std::cout << std::endl;
   std::cout << "Usage: playlist [-l|-L|-P|-J|-S|-K|-A|-T|-M|-E|-D|-G|-N "

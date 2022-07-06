@@ -105,3 +105,4 @@ Playlist *playlist(const fs::path &playlist);
 
 extern Flags flags;
 extern std::stringstream cwar;
+extern std::string ver;

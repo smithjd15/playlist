@@ -50,6 +50,7 @@ namespace fs = std::filesystem;
 
 Flags flags;
 std::stringstream cwar;
+std::string ver = "2.3";
 
 void show(const List &list) {
   time_t totalDuration(0);
@@ -393,6 +394,7 @@ const bool validTarget(const fs::path &target) {
     CURLcode result;
 
     curl_easy_setopt(curl, CURLOPT_URL, target.c_str());
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "playlist/" + ver);
     curl_easy_setopt(curl, CURLOPT_NOBODY, true);
     curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10);
