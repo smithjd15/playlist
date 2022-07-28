@@ -21,7 +21,7 @@
 
 class JSPF : public Playlist {
 public:
-  JSPF(const fs::path &playlist) : Playlist(playlist){};
+  JSPF(const fs::path &playlist) : Playlist(playlist) {};
 
   void parse(Entries &entries) override;
   const bool write(const List &list) override;

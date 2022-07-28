@@ -21,7 +21,7 @@
 
 class PLS : public Playlist {
 public:
-  PLS(const fs::path &playlist) : Playlist(playlist){};
+  PLS(const fs::path &playlist) : Playlist(playlist) {};
 
   void parse(Entries &entries) override;
   const bool write(const List &list) override;

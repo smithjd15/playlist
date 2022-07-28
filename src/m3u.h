@@ -21,7 +21,7 @@
 
 class M3U : public Playlist {
 public:
-  M3U(const fs::path &playlist) : Playlist(playlist){};
+  M3U(const fs::path &playlist) : Playlist(playlist) {};
 
   void parse(Entries &entries) override;
   const bool write(const List &list) override;

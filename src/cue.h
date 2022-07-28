@@ -21,7 +21,7 @@
 
 class CUE : public Playlist {
 public:
-  CUE(const fs::path &playlist) : Playlist(playlist){};
+  CUE(const fs::path &playlist) : Playlist(playlist) {};
 
   void parse(Entries &entries) override;
   const bool write(const List &list) override;

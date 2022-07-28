@@ -405,7 +405,7 @@ int main(int argc, char **argv) {
       if (!prepend.empty())
         target = absPath(prepend, target);
 
-      local = localTarget(target.string());
+      local = !isUri(target.string());
       valid = validTarget(absPath(it->playlist.parent_path(), target));
     };
 
@@ -484,7 +484,7 @@ int main(int argc, char **argv) {
 
     if (!image.empty()) {
       list.image = image;
-      list.localImage = localTarget(list.image.string());
+      list.localImage = !isUri(list.image.string());
       list.validImage = validTarget(list.image);
       list.images = !image.empty();
     }
@@ -525,7 +525,7 @@ int main(int argc, char **argv) {
         index = list.entries.end();
       }
 
-      entry.localTarget = localTarget(entry.target.string());
+      entry.localTarget = !isUri(entry.target.string());
       entry.validTarget = validTarget(entry.target);
 
       list.entries.emplace(index, entry);
@@ -549,7 +549,7 @@ int main(int argc, char **argv) {
 
         if (key == "ta") {
           entry.target = processTarget(value);
-          entry.localTarget = localTarget(entry.target.string());
+          entry.localTarget = !isUri(entry.target.string());
           entry.validTarget = validTarget(entry.target);
         } else if (key == "ar") {
           entry.artist = value;
@@ -563,7 +563,7 @@ int main(int argc, char **argv) {
           entry.identifier = value;
         } else if (key == "im") {
           entry.image = processTarget(value);
-          entry.localImage = localTarget(entry.image.string());
+          entry.localImage = !isUri(entry.image.string());
           entry.validImage = validTarget(entry.image);
         } else if (key == "in") {
           entry.info = value;

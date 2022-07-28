@@ -18,6 +18,7 @@
 #include "m3u.h"
 
 #include <cmath>
+#include <iomanip>
 #include <regex>
 
 void M3U::parse(Entries &entries) {

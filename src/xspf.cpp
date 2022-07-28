@@ -17,7 +17,7 @@
 
 #include "xspf.h"
 
-#include <algorithm>
+#include <iterator>
 
 #include <pugixml.hpp>
 
@@ -29,7 +29,7 @@ void XSPF::parse(Entries &entries) {
   pugi::xml_document playlist;
   std::ifstream file(m_playlist);
   pugi::xml_parse_result result(playlist.load(file));
-  pugi::xml_node trackList, track;
+  pugi::xml_node trackList;
   std::string creator, image, title;
 
   file.close();
@@ -40,8 +40,7 @@ void XSPF::parse(Entries &entries) {
     image = playlist.child(XSPF_ROOT).child("image").text().as_string();
     title = playlist.child(XSPF_ROOT).child("title").text().as_string();
 
-    for (track = trackList.child("track"); track;
-         track = track.next_sibling("track")) {
+    for (const pugi::xml_node &track : trackList.children("track")) {
       Entry entry;
 
       entry.album = track.child("album").text().as_string();

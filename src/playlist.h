@@ -98,7 +98,7 @@ const std::string percentEncode(const std::string &uri);
 const std::string percentDecode(std::string uri);
 const fs::path absPath(const fs::path &p1, const fs::path &p2);
 const KeyValue split(const std::string &line, std::string delim = "=");
-const bool localTarget(const std::string &target);
+const bool isUri(const std::string &target);
 const bool validTarget(const fs::path &target);
 const Entries::const_iterator find(const Entry &entry, const Entries &entries,
                                    bool sameList = true);

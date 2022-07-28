@@ -350,7 +350,7 @@ const std::string percentDecode(std::string uri) {
 const fs::path absPath(const fs::path &p1, const fs::path &p2) {
   fs::path path;
 
-  if (localTarget(p2.string())) {
+  if (!isUri(p2.string())) {
     if (p2.has_root_directory()) {
       path = p2;
     } else {
@@ -375,12 +375,12 @@ const KeyValue split(const std::string &line, std::string delim) {
   return KeyValue(line.substr(0, pos), line.substr(pos + 1));
 }
 
-const bool localTarget(const std::string &target) {
-  return (target.find("://") == std::string::npos);
+const bool isUri(const std::string &target) {
+  return (target.find("://") != std::string::npos);
 }
 
 const bool validTarget(const fs::path &target) {
-  const bool local = localTarget(target.string());
+  const bool local = !isUri(target.string());
   bool valid = (!local || fs::exists(target));
 
 #ifdef LIBCURL
@@ -389,7 +389,8 @@ const bool validTarget(const fs::path &target) {
     CURLcode result;
 
     curl_easy_setopt(curl, CURLOPT_URL, target.c_str());
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, "playlist/" + ver);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT,
+                     std::string("playlist/" + ver).c_str());
     curl_easy_setopt(curl, CURLOPT_NOBODY, true);
     curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10);

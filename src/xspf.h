@@ -21,7 +21,7 @@
 
 class XSPF : public Playlist {
 public:
-  XSPF(const fs::path &playlist) : Playlist(playlist){};
+  XSPF(const fs::path &playlist) : Playlist(playlist) {};
 
   void parse(Entries &entries) override;
   const bool write(const List &list) override;
