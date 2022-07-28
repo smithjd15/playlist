@@ -116,8 +116,8 @@ const bool PLS::write(const List &list) {
       }
 
       if (entry.duration > 0) {
-        file << "Length" << entry.track << "=" << std::round(entry.duration / 1000)
-             << std::endl;
+        file << "Length" << entry.track << "="
+             << std::ceil(entry.duration / 1000.0) << std::endl;
       } else if (!entry.localTarget) {
         file << "Length" << entry.track << "=-1" << std::endl;
       }

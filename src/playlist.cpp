@@ -71,9 +71,6 @@ void show(const List &list) {
                             ? entry.artist + " - " + entry.title
                             : entry.title,
                 status;
-    int duration = (!entry.validTarget && flags[30])
-                       ? 0
-                       : std::round(entry.duration / 1000);
 
     if (!entry.image.empty()) {
       if (!entry.localImage)
@@ -102,11 +99,9 @@ void show(const List &list) {
     if (entry.localImage && entry.validImage)
       size += fs::file_size(absPath(entry.playlist.parent_path(), entry.image));
 
-    if (duration > 0)
-      totalDuration += entry.duration;
-
-    std::cout << entry.track << "\t" << status << "\t" << duration << "\t"
-              << title << "\t" << target << std::endl;
+    std::cout << entry.track << "\t" << status << "\t"
+              << std::ceil(entry.duration / 1000) << "\t" << title << "\t"
+              << target << std::endl;
   }
 
   if (list.localImage && list.validImage)
@@ -116,7 +111,7 @@ void show(const List &list) {
   totalSize += std::to_string((int)std::ceil(size / 1024.0 / 1024.0));
   totalSize += " MB)";
 
-  totalDuration = totalDuration / 1000;
+  totalDuration = list.knownDuration / 1000;
   dur = std::gmtime(&totalDuration);
 
   totalDur = "(";
@@ -145,8 +140,8 @@ void show(const List &list) {
             << "\t[U]nfound: " << list.unfoundTargets << std::endl;
   std::cout << "Entries: " << list.entries.size() << std::endl;
   std::cout << std::endl;
-  std::cout << "Total known duration: " << std::round(totalDuration) << " seconds "
-            << totalDur << std::endl;
+  std::cout << "Total known duration: " << std::ceil(totalDuration)
+            << " seconds " << totalDur << std::endl;
   std::cout << "Total known disk used: " << size << " bytes " << totalSize
             << std::endl;
   std::cout << "Known title: " << list.title << totalTitles << std::endl;

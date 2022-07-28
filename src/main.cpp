@@ -680,6 +680,9 @@ int main(int argc, char **argv) {
     ::list(list);
 
   for (const Entry &entry : list.entries) {
+    if (entry.duration > 0)
+      list.knownDuration += entry.duration;
+
     list.dupeTargets += entry.duplicateTarget;
     list.netTargets += !entry.localTarget;
     list.unfoundTargets += !entry.validTarget;

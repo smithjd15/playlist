@@ -42,8 +42,8 @@ struct Entry {
   std::string playlistTitle;
   std::string title;
   int albumTrack = 0;
+  int duration = 0;
   int track = 0;
-  float duration = 0;
   bool duplicateTarget = false;
   bool localImage = false;
   bool localTarget = false;
@@ -64,6 +64,7 @@ struct List {
   int artists = 0;
   int dupeTargets = 0;
   int images = 0;
+  int knownDuration = 0;
   int netImages = 0;
   int netTargets = 0;
   int titles = 0;

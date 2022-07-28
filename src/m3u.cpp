@@ -136,7 +136,7 @@ const bool M3U::write(const List &list) {
       extInf << std::endl;
       extInf << "#EXTINF:";
       if (entry.duration > 0) {
-        extInf << std::round(entry.duration / 1000);
+        extInf << std::ceil(entry.duration / 1000.0);
       } else {
         extInf << "-1";
       }

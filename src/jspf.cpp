@@ -58,7 +58,7 @@ void JSPF::parse(Entries &entries) {
       if (track.HasMember("creator"))
         entry.artist = track["creator"].GetString();
       if (track.HasMember("duration"))
-        entry.duration = track["duration"].GetFloat();
+        entry.duration = track["duration"].GetInt();
       if (track.HasMember("identifier"))
         entry.identifier = track["identifier"].GetString();
       if (track.HasMember("image"))
@@ -119,8 +119,7 @@ const bool JSPF::write(const List &list) {
         plEntry.AddMember("creator", StringRef(entry.artist.c_str()),
                           doc.GetAllocator());
       if (entry.duration > 0)
-        plEntry.AddMember("duration", (int)entry.duration,
-                          doc.GetAllocator());
+        plEntry.AddMember("duration", entry.duration, doc.GetAllocator());
       if (!entry.identifier.empty())
         plEntry.AddMember("identifier", StringRef(entry.identifier.c_str()),
                           doc.GetAllocator());
