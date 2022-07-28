@@ -21,6 +21,7 @@ add_executable(playlist
                src/jspf.cpp
                src/m3u.cpp
                src/pls.cpp
+               src/wpl.cpp
                src/xspf.cpp)
 
 target_link_libraries(playlist pugixml RapidJSON)

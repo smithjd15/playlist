@@ -2,7 +2,7 @@
 
 Playlist is a tool for media playlist files. It can convert between common playlist formats; change and remove metadata; concatenate multiple playlists; remove duplicate entries; randomize entry order; insert, append and remove entries; remove unfound target entries and images; identify unfound or network targets or images, and identify duplicate or unique (between multiple playlists) targets; get metadata from local targets; and transform local targets and images into absolute paths, or paths relative to the out playlist or any arbitrary path.
 
-Playlist supports the common title and duration metadata for m3u, pls, and xspf/jspf, and also creator (artist), album, annotation (comment), identifier, image, info, and album track for m3u and xspf/jspf. It also supports m3u and xspf/jspf playlist artist, title, and image, and cue TITLE (playlist title and title), PERFORMER (playlist artist and artist), and REM (comment).
+Playlist supports the common title and duration metadata for m3u, pls, and xspf/jspf, and also creator (artist), album, annotation (comment), identifier, image, info, and album track for m3u and xspf/jspf. It also supports m3u and xspf/jspf playlist artist, title, and image; cue TITLE (playlist title and title), PERFORMER (playlist artist and artist), and REM (comment); and wpl playlist title.
 
 ### Inspect
 #### Playlist can list all or certain targets or images, and provide an entry overview and summary.
@@ -64,7 +64,7 @@ playlist -x -u -R -w foo/outlist.m3u inlist.m3u
 playlist -L target -x -u -R -w bar/outlist.m3u inlist.m3u
 
 ### Convert
-#### Playlist can convert between cue, m3u, pls, xspf and jspf formats.
+#### Playlist can convert between cue, m3u, pls, wpl, xspf and jspf formats.
 
 ##### Example converting an m3u to an xspf:
 
@@ -140,7 +140,7 @@ playlist -n -w outlist.m3u inlist.m3u
 
 playlist -w outlist.m3u inlist.m3u appendlist.pls
 
-##### Example setting a playlist title (cue, m3u or xspf/jspf):
+##### Example setting a playlist title (cue, m3u, wpl or xspf/jspf):
 
 playlist -t "Some Title" -w outlist.xspf inlist.xspf
 

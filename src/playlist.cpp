@@ -21,6 +21,7 @@
 #include "jspf.h"
 #include "m3u.h"
 #include "pls.h"
+#include "wpl.h"
 #include "xspf.h"
 
 #include <algorithm>
@@ -436,6 +437,8 @@ Playlist *playlist(const fs::path &playlist) {
     return new M3U(playlist);
   } else if (extension == ".pls") {
     return new PLS(playlist);
+  } else if (extension == ".wpl") {
+    return new WPL(playlist);
   } else if (extension == ".xspf") {
     return new XSPF(playlist);
   } else if (fs::is_fifo(playlist)) {
