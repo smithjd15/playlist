@@ -17,6 +17,7 @@
 
 #include "playlist.h"
 
+#include "asx.h"
 #include "cue.h"
 #include "jspf.h"
 #include "m3u.h"
@@ -429,7 +430,9 @@ Playlist *playlist(const fs::path &playlist) {
   std::transform(extension.begin(), extension.end(), extension.begin(),
                  [](const char &c) { return std::tolower(c); });
 
-  if (extension == ".cue") {
+  if (extension == ".asx") {
+    return new ASX(playlist);
+  } else if (extension == ".cue") {
     return new CUE(playlist);
   } else if (extension == ".jspf") {
     return new JSPF(playlist);

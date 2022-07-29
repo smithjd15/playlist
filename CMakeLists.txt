@@ -17,6 +17,7 @@ find_package(RapidJSON REQUIRED)
 add_executable(playlist
                src/main.cpp
                src/playlist.cpp
+               src/asx.cpp
                src/cue.cpp
                src/jspf.cpp
                src/m3u.cpp
