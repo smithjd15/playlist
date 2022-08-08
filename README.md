@@ -2,7 +2,26 @@
 
 Playlist is a tool for media playlist files. It can convert between common playlist formats; change and remove metadata; concatenate multiple playlists; remove duplicate entries; randomize entry order; insert, append and remove entries; remove unfound target entries and images; identify unfound or network targets or images, and identify duplicate or unique (between multiple playlists) targets; get metadata from local targets; and transform local targets and images into absolute paths, or paths relative to the out playlist or any arbitrary path.
 
-Playlist supports the common title and duration metadata for m3u, pls, and xspf/jspf, and also creator (artist), album, annotation (comment), identifier, image, info, and album track for m3u and xspf/jspf. It also supports m3u and xspf/jspf playlist artist, title, and image; cue TITLE (playlist title and title), PERFORMER (playlist artist and artist), and REM (comment); wpl playlist title; and asx author (playlist artist and artist), playlist title and title, and info.
+Playlist writes metadata into extension fields when available in destination playlist types lacking native field support, unless the minimal flag is specified. This does not usually make playlists feature-par, because a program loading the playlist might not be capable of reading this information.
+<br/>
+
+| | asx | cue | jspf | m3u | pls | wpl | xspf |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| playlist artist | x | x | x | x | | x | x |
+| playlist image | | | x | x | | | x |
+| playlist title | x | x | x | x | | x | x |
+| | | | | | | | |
+| album | | | x | | | | x |
+| album track | | | x | | | | x |
+| artist | x | x | x | | | | x |
+| comment | | x | x | | | | x |
+| duration | | | x | x | x | | x |
+| identifier | | | x | | | | x |
+| image | | | x | | | | x |
+| info | x | | x | | | | x |
+| title | x | x | x | x | x | | x |
+
+^ Native playlist feature support
 
 ### Inspect
 #### Playlist can list all or certain targets or images, and provide an entry overview and summary.
