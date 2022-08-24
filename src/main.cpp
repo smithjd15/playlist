@@ -132,6 +132,7 @@ int main(int argc, char **argv) {
   std::string artist, title;
   List list;
   std::vector<std::string> addItems, changeItems, removeItems;
+  Playlist *outPlaylist;
 
   auto parseList = [](const std::string &arg) {
     flags[2] = (arg == "dupe");
@@ -478,6 +479,8 @@ int main(int argc, char **argv) {
       return 2;
     }
 
+    outPlaylist = playlist(list.playlist);
+
     for (Entries::iterator it = list.entries.begin(); it != list.entries.end();
          it++)
       it->track = std::distance(list.entries.begin(), it) + 1;
@@ -660,6 +663,8 @@ int main(int argc, char **argv) {
     if (!base.empty() || flags[25])
       list.relative = (!base.empty() || flags[25]);
 
+    outPlaylist->writePreProcess(list);
+
     if (flags[32])
       std::cout << "Generated playlist: " << list.entries.size() << " entries"
                 << std::endl;
@@ -722,7 +727,7 @@ int main(int argc, char **argv) {
     if (flags[30]) {
       show(list);
     } else {
-      if (playlist(list.playlist)->write(list)) {
+      if (outPlaylist->write(list)) {
         if (flags[32])
           std::cout << "Playlist successfully written: " << list.playlist
                     << std::endl;

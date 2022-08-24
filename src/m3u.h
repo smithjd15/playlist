@@ -24,5 +24,6 @@ public:
   M3U(const fs::path &playlist) : Playlist(playlist) {};
 
   void parse(Entries &entries) override;
+  void writePreProcess(List &list) override {};
   const bool write(const List &list) override;
 };

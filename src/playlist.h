@@ -81,6 +81,7 @@ public:
   ~Playlist() { m_playlist.clear(); };
 
   virtual void parse(Entries &entries) = 0;
+  virtual void writePreProcess(List &list) = 0;
   virtual const bool write(const List &list) = 0;
 
   fs::path m_playlist;
