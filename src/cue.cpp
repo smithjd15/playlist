@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <iterator>
 #include <iomanip>
 #include <sstream>
 
@@ -110,6 +111,23 @@ void CUE::parse(Entries &entries) {
   }
 }
 
+void CUE::writePreProcess(List &list) {
+  for (Entries::iterator it = list.entries.begin(); it != list.entries.end();) {
+    if (isUri(it->target.string())) {
+      if (!flags[32])
+        cwar << "Skipping URI: " << it->target << std::endl;
+
+      it = list.entries.erase(it);
+
+      continue;
+    }
+
+    it->track = std::distance(list.entries.begin(), it) + 1;
+
+    it++;
+  }
+}
+
 const bool CUE::write(const List &list) {
   std::ofstream file(m_playlist);
 
@@ -123,13 +141,6 @@ const bool CUE::write(const List &list) {
   for (const Entry &entry : list.entries) {
     std::string type;
     std::ostringstream track;
-
-    if (!entry.localTarget) {
-      if (!flags[32])
-        std::cout << "Skipping URI: " << entry.target << std::endl;
-
-      continue;
-    }
 
     if (entry.track == 100) {
       cwar << "WARNING: Can only write 99 tracks to a cue file" << std::endl;
