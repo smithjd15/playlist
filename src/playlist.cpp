@@ -52,7 +52,7 @@ namespace fs = std::filesystem;
 
 Flags flags;
 std::stringstream cwar;
-std::string ver = "2.4";
+std::string ver = "2.5";
 
 void show(const List &list) {
   time_t totalDuration(0);
