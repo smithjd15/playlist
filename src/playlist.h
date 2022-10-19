@@ -80,14 +80,42 @@ public:
   Playlist(const fs::path &playlist) { m_playlist = playlist; };
   ~Playlist() { m_playlist.clear(); };
 
+  /**
+   * Read playlist.
+   *
+   * @param entries Playlist parsed entries.
+   */
   virtual void parse(Entries &entries) = 0;
+
+  /**
+   * Perform playlist type specific processing.
+   *
+   * @param list List to process.
+   */
   virtual void writePreProcess(List &list) = 0;
+
+  /**
+   * Write out playlist.
+   *
+   * @param list List to write.
+   */
   virtual const bool write(const List &list) = 0;
 
   fs::path m_playlist;
 };
 
+/**
+ * Show playlist information.
+ *
+ * @param list List to show.
+ */
 void show(const List &list);
+
+/**
+ * List specific playlist information.
+ *
+ * @param list List to list.
+ */
 void list(const List &list);
 #ifdef TAGLIB
 void fetchMetadata(Entry &entry);
