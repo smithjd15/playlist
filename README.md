@@ -1,6 +1,6 @@
 # Playlist
 
-Playlist is a tool for media playlist files. It can convert between common playlist formats; change and remove metadata; concatenate multiple playlists; remove duplicate entries; randomize entry order; insert, append and remove entries; remove unfound target entries and images; identify unfound or network targets or images, and identify duplicate or unique (between multiple playlists) targets; get metadata from local targets; and transform local targets and images into absolute paths, or paths relative to the out playlist or any arbitrary path.
+Playlist is a tool for media playlist files. It can convert between common playlist formats; change and remove metadata; concatenate multiple playlists; remove duplicate entries; randomize entry order; insert, append, reorder and remove entries; remove unfound target entries and images; identify unfound or network targets or images, and identify duplicate or unique (between multiple playlists) targets; get metadata from local targets; and transform local targets and images into absolute paths, or paths relative to the out playlist or any arbitrary path.
 
 Playlist writes metadata into extension fields when available in destination playlist types lacking native field support, unless the minimal flag is specified. This does not usually make playlists feature-par, because a program loading the playlist might not be capable of reading this information.
 <br/>
@@ -113,9 +113,9 @@ playlist -O -w outlist.m3u inlist.m3u
 playlist -I -w outlist.m3u inlist.m3u
 
 ### Reconstruct
-#### Playlist can insert or append, change, and remove entries, drop duplicate and unfound target entries and images, randomize the order of entries, and concatenate multiple playlists.
+#### Playlist can insert or append, move, change, and remove entries, drop duplicate and unfound target entries and images, randomize the order of entries, and concatenate multiple playlists.
 
-The -a, -e, and -r options can be used more than once.
+The -a, -c, -e, and -r options can be used more than once.
 
 ##### Example inserting an entry:
 
@@ -124,6 +124,10 @@ playlist -a 22:/foo/bar/target.ext -w outlist.m3u inlist.m3u
 ##### Example appending an entry:
 
 playlist -a /foo/bar/target.ext -w outlist.m3u inlist.m3u
+
+##### Example moving an entry from track 23 to track 22:
+
+playlist -c 22:23 -w outlist.m3u inlist.m3u
 
 ##### Example changing the target of an entry:
 

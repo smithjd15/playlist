@@ -33,23 +33,16 @@ void help() {
   std::cout << std::endl;
   std::cout << "Usage: playlist [-l|-L|-P|-J|-S|-K|-A|-T|-M|-E|-D|-G|-N "
                "dupe|image|net|netimg|target|unfound|unfoundimg|unique] [-p] "
-               "[-f path] [-z] [[-O|-I]|[-R|-B path]] [-a [track:]target] "
-               "[-e track:FIELD=value] "
+               "[-f path] [-z] [[-O|-I]|[-R|-B path]] [-c trackpos:track] "
+               "[-a [track:]target] [-e track:FIELD=value] [-r track|target] "
 #ifdef LIBCURL
+               "[-s] "
+#endif
 #ifdef TAGLIB
-               "[-r track|target] [-s] [-i] [-d] [-u] [-n] [-m] "
-#else
-               "[-r track|target] [-s] [-d] [-u] [-n] [-m] "
+               "[-i] "
 #endif
-#else
-#ifdef TAGLIB
-               "[-r track|target] [-i] [-d] [-u] [-n] [-m] "
-#else
-               "[-r track|target] [-d] [-u] [-n] [-m] "
-#endif
-#endif
-               "[-b artist] [-t title] [-g image] [-q] [-v] [-x] [-o] "
-               "[-w outfile.ext] infile..."
+               "[-d] [-u] [-n] [-m] [-b artist] [-t title] [-g image] [-q] "
+               "[-v] [-x] [-o] [-w outfile.ext] infile..."
             << std::endl;
   std::cout << std::endl;
   std::cout << "Options:" << std::endl;
@@ -86,6 +79,7 @@ void help() {
   std::cout << "\t-t Set title for out playlist" << std::endl;
   std::cout << "\t-b Set artist for out playlist" << std::endl;
   std::cout << "\t-g Set image for out playlist" << std::endl;
+  std::cout << "\t-c trackpos:track Move entry" << std::endl;
   std::cout << "\t-a Insert or append entry" << std::endl;
   std::cout << "\t-e track:FIELD=value Set entry field" << std::endl;
   std::cout << "\t-r Remove entry matching track or target" << std::endl;
@@ -132,7 +126,7 @@ int main(int argc, char **argv) {
   fs::path base, image, prepend;
   std::string artist, title;
   List list;
-  std::vector<std::string> addItems, changeItems, removeItems;
+  std::vector<std::string> addItems, changeItems, moveItems, removeItems;
   Playlist *outPlaylist;
 
   auto parseList = [](const std::string &arg) {
@@ -144,6 +138,12 @@ int main(int argc, char **argv) {
     flags[6] = (arg == "unfound");
     flags[7] = (arg == "unfoundimg");
     flags[8] = (arg == "unique");
+  };
+
+  auto parseError = [](const std::string &item) {
+    std::cerr << "Parse error: " << item << std::endl;
+
+    std::exit(2);
   };
 
   const auto transformPath = [&](const fs::path &basePath, fs::path &path) {
@@ -166,25 +166,28 @@ int main(int argc, char **argv) {
   while (
       (c = getopt(
            argc, argv,
-           "a:A:b:B:dD:e:E:f:g:G:iIJ:K:l:L:mM:nN:oOpP:r:RsS:t:T:uvw:xzqh")) !=
+           "a:A:b:B:c:dD:e:E:f:g:G:iIJ:K:l:L:mM:nN:oOpP:r:RsS:t:T:uvw:xzqh")) !=
       -1) {
 #else
-  while ((c = getopt(
-              argc, argv,
-              "a:A:b:B:dD:e:E:f:g:G:IJ:K:l:L:mM:nN:oOpP:r:RsS:t:T:uvw:xzqh")) !=
-         -1) {
+  while (
+      (c = getopt(
+           argc, argv,
+           "a:A:b:B:c:dD:e:E:f:g:G:IJ:K:l:L:mM:nN:oOpP:r:RsS:t:T:uvw:xzqh")) !=
+      -1) {
 #endif
 #else
 #ifdef TAGLIB
-  while ((c = getopt(
-              argc, argv,
-              "a:A:b:B:dD:e:E:f:g:G:iJ:K:Il:L:mM:nN:oOpP:r:RS:t:T:uvw:xzqh")) !=
-         -1) {
+  while (
+      (c = getopt(
+           argc, argv,
+           "a:A:b:B:c:dD:e:E:f:g:G:iJ:K:Il:L:mM:nN:oOpP:r:RS:t:T:uvw:xzqh")) !=
+      -1) {
 #else
-  while ((c = getopt(
-              argc, argv,
-              "a:A:b:B:dD:e:E:f:g:G:IJ:K:l:L:mM:nN:oOpP:r:RS:t:T:uvw:xzqh")) !=
-         -1) {
+  while (
+      (c = getopt(
+           argc, argv,
+           "a:A:b:B:c:dD:e:E:f:g:G:IJ:K:l:L:mM:nN:oOpP:r:RS:t:T:uvw:xzqh")) !=
+      -1) {
 #endif
 #endif
     switch (c) {
@@ -204,6 +207,10 @@ int main(int argc, char **argv) {
       break;
     case 'B':
       base = absPath(fs::current_path(), optarg);
+
+      break;
+    case 'c':
+      moveItems.emplace_back(optarg);
 
       break;
     case 'd':
@@ -503,6 +510,34 @@ int main(int argc, char **argv) {
       list.titles = !title.empty();
     }
 
+    for (const std::string &moveItem : moveItems) {
+      std::pair<std::string, std::string> pair = split(moveItem, ":");
+      int track, trackPos;
+      Entry entry;
+      Entries::iterator index;
+
+      if (!std::all_of(pair.first.begin(), pair.first.end(), isdigit))
+        parseError(moveItem);
+      if (!std::all_of(pair.second.begin(), pair.second.end(), isdigit))
+        parseError(moveItem);
+
+      track = std::stoi(pair.second);
+      trackPos = std::stoi(pair.first);
+
+      if ((track > list.entries.size()) ||
+          (track < 1) ||
+          (trackPos > list.entries.size()) ||
+          (trackPos < 1))
+        parseError(moveItem);
+
+      entry = list.entries.at(track - 1);
+      index = list.entries.begin() + track - 1;
+      list.entries.erase(index);
+
+      index = list.entries.begin() + trackPos - 1;
+      list.entries.emplace(index, entry);
+    }
+
     for (const std::string &addItem : addItems) {
       std::pair<std::string, std::string> pair = split(addItem, ":");
       Entry entry;
@@ -542,12 +577,6 @@ int main(int argc, char **argv) {
                         value = pair2.second;
       Entry entry;
 
-      auto invalid = [&changeItem]() {
-        std::cerr << "Parse error: " << changeItem << std::endl;
-
-        std::exit(2);
-      };
-
       auto setEntry = [&](Entry &entry) {
         entry.playlist = fs::current_path().append(".");
 
@@ -573,23 +602,23 @@ int main(int argc, char **argv) {
           entry.info = value;
         } else if (key == "tr") {
           if (!std::all_of(value.begin(), value.end(), isdigit))
-            invalid();
+            parseError(changeItem);
           entry.albumTrack = value.empty() ? 0 : std::stoi(value);
         } else if (key == "du") {
           if (!std::all_of(value.begin(), value.end(), isdigit))
-            invalid();
+            parseError(changeItem);
           entry.duration = value.empty() ? 0 : (std::stoi(value) * 1000);
         } else {
-          invalid();
+          parseError(changeItem);
         }
       };
 
       if (track.empty() || !std::all_of(track.begin(), track.end(), isdigit))
-        invalid();
+        parseError(changeItem);
       if (key.empty())
-        invalid();
+        parseError(changeItem);
       if (key == pair1.second)
-        invalid();
+        parseError(changeItem);
 
       for (Entry &entry : list.entries)
         if (entry.track == std::stoi(track))
