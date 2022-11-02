@@ -80,7 +80,7 @@ void help() {
   std::cout << "\t-b Set artist for out playlist" << std::endl;
   std::cout << "\t-g Set image for out playlist" << std::endl;
   std::cout << "\t-c trackpos:track Move entry" << std::endl;
-  std::cout << "\t-a Insert or append entry" << std::endl;
+  std::cout << "\t-a Insert or append target as entry" << std::endl;
   std::cout << "\t-e track:FIELD=value Set entry field" << std::endl;
   std::cout << "\t-r Remove entry matching track or target" << std::endl;
   std::cout << "\t-d Remove duplicate entries from out playlist" << std::endl;
