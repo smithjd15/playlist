@@ -14,7 +14,7 @@ Playlist writes metadata into extension fields when available in destination pla
 | album | | | x | | | | x |
 | album track | | | x | | | | x |
 | artist | x | x | x | | | | x |
-| comment | | x | x | | | | x |
+| comment | x | x | x | | | | x |
 | duration | | | x | x | x | | x |
 | identifier | | | x | | | | x |
 | image | | | x | | | | x |

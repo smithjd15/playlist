@@ -50,6 +50,7 @@ void ASX::parse(Entries &entries) {
       Entry entry;
 
       entry.artist = plEntry.child("AUTHOR").text().as_string();
+      entry.comment = plEntry.child("ABSTRACT").text().as_string();
       entry.info = plEntry.child("MOREINFO").attribute("href").as_string();
       entry.target = plEntry.child("REF").attribute("href").as_string();
       entry.title = plEntry.child("TITLE").text().as_string();
@@ -58,8 +59,6 @@ void ASX::parse(Entries &entries) {
       for (const pugi::xml_node &param : plEntry.children("PARAM")) {
         if (param.attribute("NAME").as_string() == std::string("album"))
           entry.album = param.attribute("VALUE").as_string();
-        if (param.attribute("NAME").as_string() == std::string("comment"))
-          entry.comment = param.attribute("VALUE").as_string();
         if (param.attribute("NAME").as_string() == std::string("duration"))
           entry.duration = param.attribute("VALUE").as_int();
         if (param.attribute("NAME").as_string() == std::string("identifier"))
@@ -134,10 +133,12 @@ const bool ASX::write(const List &list) {
         entry.target.c_str());
 
     if (!flags[18]) {
-      if (!entry.title.empty())
-        plEntry.append_child("TITLE").text().set(entry.title.c_str());
+      if (!entry.comment.empty())
+        plEntry.append_child("ABSTRACT").text().set(entry.comment.c_str());
       if (!entry.artist.empty())
         plEntry.append_child("AUTHOR").text().set(entry.artist.c_str());
+      if (!entry.title.empty())
+        plEntry.append_child("TITLE").text().set(entry.title.c_str());
 
       if (!entry.info.empty())
         plEntry.append_child("MOREINFO")
@@ -148,12 +149,6 @@ const bool ASX::write(const List &list) {
         param = plEntry.append_child("PARAM");
         param.append_attribute("NAME").set_value("album");
         param.append_attribute("VALUE").set_value(entry.album.c_str());
-      }
-
-      if (!entry.comment.empty()) {
-        param = plEntry.append_child("PARAM");
-        param.append_attribute("NAME").set_value("comment");
-        param.append_attribute("VALUE").set_value(entry.comment.c_str());
       }
 
       if (entry.duration > 0) {
