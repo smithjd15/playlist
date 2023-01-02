@@ -1,5 +1,5 @@
 /* playlist wpl module
- * Copyright (C) 2021, 2022 James D. Smith
+ * Copyright (C) 2021 - 2023 James D. Smith
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
