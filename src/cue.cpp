@@ -25,7 +25,7 @@
 
 void CUE::parse(Entries &entries) {
   std::ifstream file(m_playlist);
-  std::string line, performer, title;
+  std::string comment, line, performer, title;
   bool invalidTrack(false), singleFileCueSheet(false);
 
   while (!file.eof()) {
@@ -35,6 +35,9 @@ void CUE::parse(Entries &entries) {
 
       if (line.rfind("PERFORMER", 0) != std::string::npos)
         performer = unquote(split(line, " ").second);
+
+      if (line.rfind("REM", 0) != std::string::npos)
+        comment = unquote(split(line, " ").second);
 
       std::getline(file, line);
     }
@@ -85,6 +88,7 @@ void CUE::parse(Entries &entries) {
 
       entry.playlist = m_playlist;
       entry.playlistArtist = performer;
+      entry.playlistComment = comment;
       entry.playlistTitle = title;
 
       entries.push_back(entry);
@@ -136,6 +140,8 @@ const bool CUE::write(const List &list) {
       file << "TITLE " << std::quoted(list.title) << std::endl;
     if (!list.artist.empty())
       file << "PERFORMER " << std::quoted(list.artist) << std::endl;
+    if (!list.comment.empty())
+      file << "REM " << std::quoted(list.comment) << std::endl;
   }
 
   for (const Entry &entry : list.entries) {

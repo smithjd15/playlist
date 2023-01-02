@@ -41,8 +41,8 @@ void help() {
 #ifdef TAGLIB
                "[-i] "
 #endif
-               "[-d] [-u] [-n] [-m] [-b artist] [-t title] [-g image] [-q] "
-               "[-v] [-x] [-o] [-w outfile.ext] infile..."
+               "[-d] [-u] [-n] [-m] [-b artist] [-k comment] [-g image] "
+               "[-t title] [-q] [-v] [-x] [-o] [-w outfile.ext] infile..."
             << std::endl;
   std::cout << std::endl;
   std::cout << "Options:" << std::endl;
@@ -79,6 +79,7 @@ void help() {
   std::cout << "\t-t Set title for out playlist" << std::endl;
   std::cout << "\t-b Set artist for out playlist" << std::endl;
   std::cout << "\t-g Set image for out playlist" << std::endl;
+  std::cout << "\t-k Set comment for out playlist" << std::endl;
   std::cout << "\t-c trackpos:track Move entry" << std::endl;
   std::cout << "\t-a Insert or append target as entry" << std::endl;
   std::cout << "\t-e track:FIELD=value Set entry field" << std::endl;
@@ -124,7 +125,7 @@ void help() {
 
 int main(int argc, char **argv) {
   fs::path base, image, prepend;
-  std::string artist, title;
+  std::string artist, comment, title;
   List list;
   std::vector<std::string> addItems, changeItems, moveItems, removeItems;
   Playlist *outPlaylist;
@@ -166,13 +167,13 @@ int main(int argc, char **argv) {
   while (
       (c = getopt(
            argc, argv,
-           "a:A:b:B:c:dD:e:E:f:g:G:iIJ:K:l:L:mM:nN:oOpP:r:RsS:t:T:uvw:xzqh")) !=
+           "a:A:b:B:c:dD:e:E:f:g:G:iIJ:k:K:l:L:mM:nN:oOpP:r:RsS:t:T:uvw:xzqh")) !=
       -1) {
 #else
   while (
       (c = getopt(
            argc, argv,
-           "a:A:b:B:c:dD:e:E:f:g:G:IJ:K:l:L:mM:nN:oOpP:r:RsS:t:T:uvw:xzqh")) !=
+           "a:A:b:B:c:dD:e:E:f:g:G:IJ:k:K:l:L:mM:nN:oOpP:r:RsS:t:T:uvw:xzqh")) !=
       -1) {
 #endif
 #else
@@ -180,13 +181,13 @@ int main(int argc, char **argv) {
   while (
       (c = getopt(
            argc, argv,
-           "a:A:b:B:c:dD:e:E:f:g:G:iJ:K:Il:L:mM:nN:oOpP:r:RS:t:T:uvw:xzqh")) !=
+           "a:A:b:B:c:dD:e:E:f:g:G:iJ:k:K:Il:L:mM:nN:oOpP:r:RS:t:T:uvw:xzqh")) !=
       -1) {
 #else
   while (
       (c = getopt(
            argc, argv,
-           "a:A:b:B:c:dD:e:E:f:g:G:IJ:K:l:L:mM:nN:oOpP:r:RS:t:T:uvw:xzqh")) !=
+           "a:A:b:B:c:dD:e:E:f:g:G:IJ:k:K:l:L:mM:nN:oOpP:r:RS:t:T:uvw:xzqh")) !=
       -1) {
 #endif
 #endif
@@ -261,6 +262,10 @@ int main(int argc, char **argv) {
       flags[15] = true;
 
       parseList(optarg);
+
+      break;
+    case 'k':
+      comment = optarg;
 
       break;
     case 'K':
@@ -439,6 +444,14 @@ int main(int argc, char **argv) {
         list.artist = it->playlistArtist;
     }
 
+    if (!it->playlistComment.empty()) {
+      if (list.comment.empty() || (it->playlistComment != list.comment))
+        list.comments++;
+
+      if (list.comment.empty())
+        list.comment = it->playlistComment;
+    }
+
     if (!it->playlistTitle.empty()) {
       if (list.title.empty() || (it->playlistTitle != list.title))
         list.titles++;
@@ -503,6 +516,11 @@ int main(int argc, char **argv) {
     if (!artist.empty()) {
       list.artist = artist;
       list.artists = !artist.empty();
+    }
+
+    if (!comment.empty()) {
+      list.comment = comment;
+      list.comments = !comment.empty();
     }
 
     if (!title.empty()) {
@@ -744,6 +762,10 @@ int main(int argc, char **argv) {
       if (list.artists > 1)
         cwar << "WARNING: 1 of " << list.artists
              << " playlist artists auto-selected" << std::endl;
+
+      if (list.comments > 1)
+        cwar << "WARNING: 1 of " << list.comments
+             << " playlist comments auto-selected" << std::endl;
 
       if (list.images > 1)
         cwar << "WARNING: 1 of " << list.images

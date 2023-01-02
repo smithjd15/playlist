@@ -58,7 +58,8 @@ void show(const List &list) {
   time_t totalDuration(0);
   uint size(0);
   tm *dur;
-  std::string totalArtists, totalDur, totalImages, totalSize, totalTitles;
+  std::string totalArtists, totalComments, totalDur, totalImages, totalSize,
+      totalTitles;
 
   std::cout << "Track"
             << "\tStatus"
@@ -129,6 +130,9 @@ void show(const List &list) {
   if (list.artists > 1)
     totalArtists = " (of " + std::to_string(list.artists) + "!)";
 
+  if (list.comments > 1)
+    totalComments = " (of " + std::to_string(list.comments) + "!)";
+
   if (list.images > 1)
     totalImages = " (of " + std::to_string(list.images) + "!)";
 
@@ -150,6 +154,7 @@ void show(const List &list) {
   std::cout << "Known artist: " << list.artist << totalArtists << std::endl;
   std::cout << "Known image: " << list.image.string() << totalImages
             << std::endl;
+  std::cout << "Known comment: " << list.comment << totalComments << std::endl;
 
   if (cwar.rdbuf()->in_avail() > 0)
     std::cout << std::endl;

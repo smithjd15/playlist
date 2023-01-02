@@ -30,11 +30,12 @@ void ASX::parse(Entries &entries) {
   std::ifstream file(m_playlist);
   pugi::xml_parse_result result(playlist.load(file));
   pugi::xml_node plEntry;
-  std::string creator, image, title;
+  std::string comment, creator, image, title;
 
   file.close();
 
   if (result && !file.bad() && playlist.child(ASX_ROOT)) {
+    comment = playlist.child(ASX_ROOT).child("ABSTRACT").text().as_string();
     creator = playlist.child(ASX_ROOT).child("AUTHOR").text().as_string();
     title = playlist.child(ASX_ROOT).child("TITLE").text().as_string();
 
@@ -71,6 +72,7 @@ void ASX::parse(Entries &entries) {
 
       entry.playlist = m_playlist;
       entry.playlistArtist = creator;
+      entry.playlistComment = comment;
       entry.playlistImage = image;
       entry.playlistTitle = title;
 
@@ -115,10 +117,12 @@ const bool ASX::write(const List &list) {
   doc.append_attribute("VERSION").set_value("3.0");
 
   if (!flags[18]) {
-    if (!list.title.empty())
-      doc.append_child("TITLE").text().set(list.title.c_str());
     if (!list.artist.empty())
       doc.append_child("AUTHOR").text().set(list.artist.c_str());
+    if (!list.comment.empty())
+      doc.append_child("ABSTRACT").text().set(list.comment.c_str());
+    if (!list.title.empty())
+      doc.append_child("TITLE").text().set(list.title.c_str());
 
     if (!list.image.empty()) {
       param = doc.append_child("PARAM");

@@ -30,12 +30,13 @@ void XSPF::parse(Entries &entries) {
   std::ifstream file(m_playlist);
   pugi::xml_parse_result result(playlist.load(file));
   pugi::xml_node trackList;
-  std::string creator, image, title;
+  std::string comment, creator, image, title;
 
   file.close();
 
   if (result && !file.bad() && playlist.child(XSPF_ROOT)) {
     trackList = playlist.child(XSPF_ROOT).child("trackList");
+    comment = playlist.child(XSPF_ROOT).child("annotation").text().as_string();
     creator = playlist.child(XSPF_ROOT).child("creator").text().as_string();
     image = playlist.child(XSPF_ROOT).child("image").text().as_string();
     title = playlist.child(XSPF_ROOT).child("title").text().as_string();
@@ -57,6 +58,7 @@ void XSPF::parse(Entries &entries) {
           std::distance<pugi::xml_node::iterator>(trackList.begin(), track) + 1;
       entry.playlist = m_playlist;
       entry.playlistArtist = creator;
+      entry.playlistComment = comment;
       entry.playlistImage = image;
       entry.playlistTitle = title;
 
@@ -123,10 +125,10 @@ const bool XSPF::write(const List &list) {
       playList.append_attribute("xml:base").set_value(base.c_str());
     }
 
-    if (!list.title.empty())
-      playList.insert_child_before("title", trackList)
+    if (!list.comment.empty())
+      playList.insert_child_before("annotation", trackList)
           .text()
-          .set(list.title.c_str());
+          .set(list.comment.c_str());
     if (!list.artist.empty())
       playList.insert_child_before("creator", trackList)
           .text()
@@ -135,6 +137,10 @@ const bool XSPF::write(const List &list) {
       playList.insert_child_before("image", trackList)
           .text()
           .set(list.image.c_str());
+    if (!list.title.empty())
+      playList.insert_child_before("title", trackList)
+          .text()
+          .set(list.title.c_str());
   }
 
   pl.save(file, "  ");

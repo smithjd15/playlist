@@ -8,6 +8,7 @@ Playlist writes metadata into extension fields when available in destination pla
 | | asx | cue | jspf | m3u | pls | wpl | xspf |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | playlist artist | x | x | x | x | | x | x |
+| playlist comment | x | x | x | | | | x |
 | playlist image | | | x | x | | | x |
 | playlist title | x | x | x | x | | x | x |
 | | | | | | | | |
@@ -170,6 +171,10 @@ playlist -t "Some Title" -w outlist.xspf inlist.xspf
 ##### Example setting a playlist artist (asx, cue, m3u or xspf/jspf):
 
 playlist -b "Some Creator" -w outlist.xspf inlist.xspf
+
+##### Example setting a playlist comment (asx, cue or xspf/jspf):
+
+playlist -k "Some Comment" -w outlist.xspf inlist.xspf
 
 ##### Example setting a playlist image (m3u or xspf/jspf):
 

@@ -32,7 +32,7 @@ void WPL::parse(Entries &entries) {
   pugi::xml_parse_result result(
       playlist.load(file, pugi::parse_default | pugi::parse_pi));
   pugi::xml_node head, seq;
-  std::string creator, image, title;
+  std::string comment, creator, image, title;
 
   file.close();
 
@@ -44,6 +44,8 @@ void WPL::parse(Entries &entries) {
     for (const pugi::xml_node &meta : head.children("meta")) {
       if (meta.attribute("name").as_string() == std::string("Author"))
         creator = meta.attribute("content").as_string();
+      if (meta.attribute("name").as_string() == std::string("Comment"))
+        comment = meta.attribute("content").as_string();
       if (meta.attribute("name").as_string() == std::string("Image"))
         image = meta.attribute("content").as_string();
     }
@@ -56,6 +58,7 @@ void WPL::parse(Entries &entries) {
       entry.track = t;
       entry.playlist = m_playlist;
       entry.playlistArtist = creator;
+      entry.playlistComment = comment;
       entry.playlistImage = image;
       entry.playlistTitle = title;
 
@@ -107,6 +110,12 @@ const bool WPL::write(const List &list) {
       meta = root.child("head").append_child("meta");
       meta.append_attribute("name").set_value("Author");
       meta.append_attribute("content").set_value(list.artist.c_str());
+    }
+
+    if (!list.comment.empty()) {
+      meta = root.child("head").append_child("meta");
+      meta.append_attribute("name").set_value("Comment");
+      meta.append_attribute("content").set_value(list.comment.c_str());
     }
 
     if (!list.image.empty()) {

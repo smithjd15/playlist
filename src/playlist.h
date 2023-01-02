@@ -39,6 +39,7 @@ struct Entry {
   std::string identifier;
   std::string info;
   std::string playlistArtist;
+  std::string playlistComment;
   std::string playlistTitle;
   std::string title;
   int albumTrack = 0;
@@ -59,9 +60,11 @@ struct List {
   fs::path image;
   fs::path playlist;
   std::string artist;
+  std::string comment;
   std::string title;
   Entries entries;
   int artists = 0;
+  int comments = 0;
   int dupeTargets = 0;
   int images = 0;
   int knownDuration = 0;
