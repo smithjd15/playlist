@@ -25,7 +25,7 @@
 
 void CUE::parse(Entries &entries) {
   std::ifstream file(m_playlist);
-  std::string comment, line, performer, title;
+  std::string comment, image, line, performer, rem, title;
   bool invalidTrack(false), singleFileCueSheet(false);
 
   while (!file.eof()) {
@@ -36,8 +36,14 @@ void CUE::parse(Entries &entries) {
       if (line.rfind("PERFORMER", 0) != std::string::npos)
         performer = unquote(split(line, " ").second);
 
-      if (line.rfind("REM", 0) != std::string::npos)
-        comment = unquote(split(line, " ").second);
+      if (line.rfind("REM", 0) != std::string::npos) {
+        rem = split(line, " ").second;
+
+        if (rem.rfind("COMMENT", 0) != std::string::npos)
+          comment = unquote(split(rem, " ").second);
+        if (rem.rfind("IMAGE", 0) != std::string::npos)
+          image = unquote(split(rem, " ").second);
+      }
 
       std::getline(file, line);
     }
@@ -75,8 +81,24 @@ void CUE::parse(Entries &entries) {
         if (line.rfind("PERFORMER", 0) != std::string::npos)
           entry.artist = unquote(split(line, " ").second);
 
-        if (line.rfind("REM", 0) != std::string::npos)
-          entry.comment = unquote(split(line, " ").second);
+        if (line.rfind("REM", 0) != std::string::npos) {
+          rem = split(line, " ").second;
+
+          if (rem.rfind("ALBUM", 0) != std::string::npos)
+            entry.album = unquote(split(rem, " ").second);
+          if (rem.rfind("COMMENT", 0) != std::string::npos)
+            entry.comment = unquote(split(rem, " ").second);
+          if (rem.rfind("DURATION", 0) != std::string::npos)
+            entry.duration = std::stoi(split(rem, " ").second);
+          if (rem.rfind("IDENTIFIER", 0) != std::string::npos)
+            entry.identifier = unquote(split(rem, " ").second);
+          if (rem.rfind("IMAGE", 0) != std::string::npos)
+            entry.image = unquote(split(rem, " ").second);
+          if (rem.rfind("INFO", 0) != std::string::npos)
+            entry.info = unquote(split(rem, " ").second);
+          if (rem.rfind("TRACK", 0) != std::string::npos)
+            entry.albumTrack = std::stoi(split(rem, " ").second);
+        }
 
         std::getline(file, line);
       }
@@ -89,6 +111,7 @@ void CUE::parse(Entries &entries) {
       entry.playlist = m_playlist;
       entry.playlistArtist = performer;
       entry.playlistComment = comment;
+      entry.playlistImage = image;
       entry.playlistTitle = title;
 
       entries.push_back(entry);
@@ -141,7 +164,9 @@ const bool CUE::write(const List &list) {
     if (!list.artist.empty())
       file << "PERFORMER " << std::quoted(list.artist) << std::endl;
     if (!list.comment.empty())
-      file << "REM " << std::quoted(list.comment) << std::endl;
+      file << "REM COMMENT " << std::quoted(list.comment) << std::endl;
+    if (!list.image.empty())
+      file << "REM IMAGE " << std::quoted(list.image.c_str()) << std::endl;
   }
 
   for (const Entry &entry : list.entries) {
@@ -177,8 +202,20 @@ const bool CUE::write(const List &list) {
         file << "    TITLE " << std::quoted(entry.title) << std::endl;
       if (!entry.artist.empty())
         file << "    PERFORMER " << std::quoted(entry.artist) << std::endl;
+      if (!entry.album.empty())
+        file << "    REM ALBUM " << std::quoted(entry.album) << std::endl;
       if (!entry.comment.empty())
-        file << "    REM " << std::quoted(entry.comment) << std::endl;
+        file << "    REM COMMENT " << std::quoted(entry.comment) << std::endl;
+      if (entry.duration > 0)
+        file << "    REM DURATION " << entry.duration << std::endl;
+      if (!entry.identifier.empty())
+        file << "    REM IDENTIFIER " << std::quoted(entry.identifier) << std::endl;
+      if (!entry.image.empty())
+        file << "    REM IMAGE " << std::quoted(entry.image.c_str()) << std::endl;
+      if (!entry.info.empty())
+        file << "    REM INFO " << std::quoted(entry.info) << std::endl;
+      if (entry.albumTrack)
+        file << "    REM TRACK " << entry.albumTrack << std::endl;
     }
 
     file << "    INDEX 01 00:00:00" << std::endl;
