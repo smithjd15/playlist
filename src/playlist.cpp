@@ -198,6 +198,9 @@ void list(const List &list) {
     if (flags[28])
       return KeyValue(entry.title, entry.target.string());
 
+    if (flags[34])
+      return KeyValue(entry.playlistComment, entry.target.string());
+
     return KeyValue(std::to_string(entry.track), entry.target.string());
   };
 

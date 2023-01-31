@@ -31,7 +31,7 @@ void help() {
   std::cout << "playlist version " << ver << std::endl;
   std::cout << "Copyright (C) 2021, 2022 James D. Smith" << std::endl;
   std::cout << std::endl;
-  std::cout << "Usage: playlist [-l|-L|-P|-J|-S|-K|-A|-T|-M|-E|-D|-G|-N "
+  std::cout << "Usage: playlist [-l|-L|-P|-J|-S|-K|-C|-A|-T|-M|-E|-D|-G|-N "
                "dupe|image|net|netimg|target|unfound|unfoundimg|unique] [-p] "
                "[-f path] [-z] [[-O|-I]|[-R|-B path]] [-c trackpos:track] "
                "[-a [track:]target] [-e track:FIELD=value] [-r track|target] "
@@ -52,6 +52,7 @@ void help() {
   std::cout << "\t-J LIST Playlist title and targets" << std::endl;
   std::cout << "\t-S LIST Playlist artist and targets" << std::endl;
   std::cout << "\t-K LIST Playlist image and targets" << std::endl;
+  std::cout << "\t-C LIST Playlist comment and targets" << std::endl;
   std::cout << "\t-A LIST Artists and targets" << std::endl;
   std::cout << "\t-T LIST Titles and targets" << std::endl;
   std::cout << "\t-M LIST Albums and targets" << std::endl;
@@ -167,13 +168,13 @@ int main(int argc, char **argv) {
   while (
       (c = getopt(
            argc, argv,
-           "a:A:b:B:c:dD:e:E:f:g:G:iIJ:k:K:l:L:mM:nN:oOpP:r:RsS:t:T:uvw:xzqh")) !=
+           "a:A:b:B:c:C:dD:e:E:f:g:G:iIJ:k:K:l:L:mM:nN:oOpP:r:RsS:t:T:uvw:xzqh")) !=
       -1) {
 #else
   while (
       (c = getopt(
            argc, argv,
-           "a:A:b:B:c:dD:e:E:f:g:G:IJ:k:K:l:L:mM:nN:oOpP:r:RsS:t:T:uvw:xzqh")) !=
+           "a:A:b:B:c:C:dD:e:E:f:g:G:IJ:k:K:l:L:mM:nN:oOpP:r:RsS:t:T:uvw:xzqh")) !=
       -1) {
 #endif
 #else
@@ -181,13 +182,13 @@ int main(int argc, char **argv) {
   while (
       (c = getopt(
            argc, argv,
-           "a:A:b:B:c:dD:e:E:f:g:G:iJ:k:K:Il:L:mM:nN:oOpP:r:RS:t:T:uvw:xzqh")) !=
+           "a:A:b:B:c:C:dD:e:E:f:g:G:iJ:k:K:Il:L:mM:nN:oOpP:r:RS:t:T:uvw:xzqh")) !=
       -1) {
 #else
   while (
       (c = getopt(
            argc, argv,
-           "a:A:b:B:c:dD:e:E:f:g:G:IJ:k:K:l:L:mM:nN:oOpP:r:RS:t:T:uvw:xzqh")) !=
+           "a:A:b:B:c:C:dD:e:E:f:g:G:IJ:k:K:l:L:mM:nN:oOpP:r:RS:t:T:uvw:xzqh")) !=
       -1) {
 #endif
 #endif
@@ -212,6 +213,12 @@ int main(int argc, char **argv) {
       break;
     case 'c':
       moveItems.emplace_back(optarg);
+
+      break;
+    case 'C':
+      flags[34] = true;
+
+      parseList(optarg);
 
       break;
     case 'd':

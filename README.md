@@ -46,6 +46,7 @@ and append it to one of the following flags:
 -S, list playlist artist with targets or images.  
 -J, list playlist title with targets or images.  
 -K, list playlist image with targets or images.  
+-C, list playlist comment with targets or images.  
 -A, list artists with targets or images.  
 -T, list titles with targets or images.  
 -M, list albums with targets or images.  

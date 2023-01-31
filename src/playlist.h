@@ -54,7 +54,7 @@ struct Entry {
 
 typedef std::pair<const std::string, std::string> KeyValue;
 typedef std::vector<Entry> Entries;
-typedef std::bitset<33> Flags;
+typedef std::bitset<34> Flags;
 
 struct List {
   fs::path image;
