@@ -29,7 +29,7 @@
 
 void help() {
   std::cout << "playlist version " << ver << std::endl;
-  std::cout << "Copyright (C) 2021, 2022 James D. Smith" << std::endl;
+  std::cout << "Copyright (C) James D. Smith" << std::endl;
   std::cout << std::endl;
   std::cout << "Usage: playlist [-l|-L|-P|-J|-S|-K|-C|-A|-T|-M|-E|-D|-G|-N "
                "dupe|image|net|netimg|target|unfound|unfoundimg|unique] [-p] "
