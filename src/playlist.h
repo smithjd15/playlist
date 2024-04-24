@@ -48,13 +48,14 @@ struct Entry {
   bool duplicateTarget = false;
   bool localImage = false;
   bool localTarget = false;
+  bool nestedEntry = false;
   bool validImage = false;
   bool validTarget = false;
 };
 
 typedef std::pair<const std::string, std::string> KeyValue;
 typedef std::vector<Entry> Entries;
-typedef std::bitset<34> Flags;
+typedef std::bitset<35> Flags;
 
 struct List {
   fs::path image;

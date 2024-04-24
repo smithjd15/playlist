@@ -52,7 +52,7 @@ namespace fs = std::filesystem;
 
 Flags flags;
 std::stringstream cwar;
-std::string ver = "2.7";
+std::string ver = "2.8";
 
 void show(const List &list) {
   time_t totalDuration(0);
@@ -420,8 +420,10 @@ const Entries::const_iterator find(const Entry &entry, const Entries &entries,
     if (!sameList && (entry.playlist == e.playlist))
       return false;
 
-    if (fs::weakly_canonical(entry.target.string()) ==
-        fs::weakly_canonical(e.target.string()))
+    if (fs::weakly_canonical(
+            absPath(entry.playlist.parent_path(), entry.target).string()) ==
+        fs::weakly_canonical(
+            absPath(e.playlist.parent_path(), e.target).string()))
       return true;
 
     if (!entry.artist.empty() && !entry.title.empty())

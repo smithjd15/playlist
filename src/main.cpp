@@ -41,7 +41,7 @@ void help() {
 #ifdef TAGLIB
                "[-i] "
 #endif
-               "[-d] [-u] [-n] [-m] [-b artist] [-k comment] [-g image] "
+               "[-d] [-u] [-j] [-n] [-m] [-b artist] [-k comment] [-g image] "
                "[-t title] [-q] [-v] [-x] [-o] [-w outfile.ext] infile..."
             << std::endl;
   std::cout << std::endl;
@@ -88,6 +88,7 @@ void help() {
   std::cout << "\t-d Remove duplicate entries from out playlist" << std::endl;
   std::cout << "\t-u Remove unfound target entries and images from out playlist"
             << std::endl;
+  std::cout << "\t-j Merge nested playlists" << std::endl;
   std::cout << "\t-n Out playlist entries in random order" << std::endl;
   std::cout << "\t-m Minimal out playlist (targets only)" << std::endl;
 #ifdef LIBCURL
@@ -142,6 +143,46 @@ int main(int argc, char **argv) {
     flags[8] = (arg == "unique");
   };
 
+  const auto isPlaylist = [](std::string extension) {
+    std::transform(extension.begin(), extension.end(), extension.begin(),
+                   [](const char &c) { return std::tolower(c); });
+
+    if (extension == ".asx")
+      return true;
+    if (extension == ".cue")
+      return true;
+    if (extension == ".jspf")
+      return true;
+    if (extension == ".m3u")
+      return true;
+    if (extension == ".pls")
+      return true;
+    if (extension == ".wpl")
+      return true;
+    if (extension == ".xspf")
+      return true;
+
+    return false;
+  };
+
+  const auto hasNestedList = [&](const Entries &entries) {
+    for (Entries::const_iterator it = entries.begin(); it != entries.end();
+         it++) {
+      fs::path target = processTarget(it->target.string());
+
+      if (!prepend.empty() && !it->nestedEntry) {
+        target = absPath(prepend, target);
+      } else {
+        target = absPath(it->playlist.parent_path(), target);
+      }
+
+      if (isPlaylist(target.extension().string()) && fs::exists(target))
+        return true;
+    }
+
+    return false;
+  };
+
   auto parseError = [](const std::string &item) {
     std::cerr << "Parse error: " << item << std::endl;
 
@@ -165,31 +206,23 @@ int main(int argc, char **argv) {
   int c;
 #ifdef LIBCURL
 #ifdef TAGLIB
-  while (
-      (c = getopt(
-           argc, argv,
-           "a:A:b:B:c:C:dD:e:E:f:g:G:iIJ:k:K:l:L:mM:nN:oOpP:r:RsS:t:T:uvw:xzqh")) !=
-      -1) {
+  while ((c = getopt(argc, argv,
+                     "a:A:b:B:c:C:dD:e:E:f:g:G:iIjJ:k:K:l:L:mM:nN:oOpP:r:RsS:t:"
+                     "T:uvw:xzqh")) != -1) {
 #else
-  while (
-      (c = getopt(
-           argc, argv,
-           "a:A:b:B:c:C:dD:e:E:f:g:G:IJ:k:K:l:L:mM:nN:oOpP:r:RsS:t:T:uvw:xzqh")) !=
-      -1) {
+  while ((c = getopt(argc, argv,
+                     "a:A:b:B:c:C:dD:e:E:f:g:G:IjJ:k:K:l:L:mM:nN:oOpP:r:RsS:t:"
+                     "T:uvw:xzqh")) != -1) {
 #endif
 #else
 #ifdef TAGLIB
-  while (
-      (c = getopt(
-           argc, argv,
-           "a:A:b:B:c:C:dD:e:E:f:g:G:iJ:k:K:Il:L:mM:nN:oOpP:r:RS:t:T:uvw:xzqh")) !=
-      -1) {
+  while ((c = getopt(argc, argv,
+                     "a:A:b:B:c:C:dD:e:E:f:g:G:ijJ:k:K:Il:L:mM:nN:oOpP:r:RS:t:"
+                     "T:uvw:xzqh")) != -1) {
 #else
-  while (
-      (c = getopt(
-           argc, argv,
-           "a:A:b:B:c:C:dD:e:E:f:g:G:IJ:k:K:l:L:mM:nN:oOpP:r:RS:t:T:uvw:xzqh")) !=
-      -1) {
+  while ((c = getopt(argc, argv,
+                     "a:A:b:B:c:C:dD:e:E:f:g:G:IjJ:k:K:l:L:mM:nN:oOpP:r:RS:t:T:"
+                     "uvw:xzqh")) != -1) {
 #endif
 #endif
     switch (c) {
@@ -263,6 +296,10 @@ int main(int argc, char **argv) {
 #endif
     case 'I':
       flags[14] = true;
+
+      break;
+    case 'j':
+      flags[35] = true;
 
       break;
     case 'J':
@@ -418,12 +455,45 @@ int main(int argc, char **argv) {
     }
   }
 
+  if (flags[35]) {
+    while (hasNestedList(list.entries)) {
+      Entries mergedEntries;
+
+      for (Entries::const_iterator it = list.entries.begin();
+           it != list.entries.end(); it++) {
+        fs::path target = processTarget(it->target.string());
+
+        if (!prepend.empty() && !it->nestedEntry) {
+          target = absPath(prepend, target);
+        } else {
+          target = absPath(it->playlist.parent_path(), target);
+        }
+
+        if (isPlaylist(target.extension().string()) && fs::exists(target)) {
+          Entries listEntries;
+
+          playlist(target)->parse(listEntries);
+
+          for (Entries::iterator it = listEntries.begin();
+               it != listEntries.end(); it++) {
+            it->nestedEntry = true;
+            mergedEntries.push_back(*it);
+          }
+        } else {
+          mergedEntries.push_back(*it);
+        }
+      }
+
+      list.entries = mergedEntries;
+    }
+  }
+
   for (Entries::iterator it = list.entries.begin(); it != list.entries.end();
        it++) {
     auto computeTargets = [&](fs::path &target, bool &local, bool &valid) {
       target = processTarget(target.string());
 
-      if (!prepend.empty())
+      if (!prepend.empty() && !it->nestedEntry)
         target = absPath(prepend, target);
 
       local = !isUri(target.string());
@@ -549,10 +619,8 @@ int main(int argc, char **argv) {
       track = std::stoi(pair.second);
       trackPos = std::stoi(pair.first);
 
-      if ((track > list.entries.size()) ||
-          (track < 1) ||
-          (trackPos > list.entries.size()) ||
-          (trackPos < 1))
+      if ((track > list.entries.size()) || (track < 1) ||
+          (trackPos > list.entries.size()) || (trackPos < 1))
         parseError(moveItem);
 
       entry = list.entries.at(track - 1);

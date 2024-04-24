@@ -1,6 +1,6 @@
 # Playlist
 
-Playlist is a tool for media playlist files. It can convert between common playlist formats; change and remove metadata; concatenate multiple playlists; remove duplicate entries; randomize entry order; insert, append, reorder and remove entries; remove unfound target entries and images; identify unfound or network targets or images, and identify duplicate or unique (between multiple playlists) targets; get metadata from local targets; and transform local targets and images into absolute paths, or paths relative to the out playlist or any arbitrary path.
+Playlist is a tool for media playlist files. It can convert between common playlist formats; merge nested playlists; change and remove metadata; concatenate multiple playlists; remove duplicate entries; randomize entry order; insert, append, reorder and remove entries; remove unfound target entries and images; identify unfound or network targets or images, and identify duplicate or unique (between multiple playlists) targets; get metadata from local targets; and transform local targets and images into absolute paths, or paths relative to the out playlist or any arbitrary path.
 
 Playlist writes metadata into extension fields when available in destination playlist types lacking native field support, unless the minimal flag is specified. This does not usually make playlists feature-par, because a program loading the playlist might not be capable of reading this information.
 <br/>
@@ -78,6 +78,9 @@ playlist -P unique comparelist.m3u inlist.m3u
 ##### Example providing an entry overview and summary:
 
 playlist inlist.m3u
+
+##### Example listing merged nested playlists:
+playlist -j inlist.m3u
 
 ##### Examples previewing changes without writing the out playlist:
 
