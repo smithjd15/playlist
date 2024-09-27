@@ -24,6 +24,28 @@ Playlist writes metadata into extension fields when available in destination pla
 
 ^ Native playlist feature support
 
+
+## Install (macOS)
+
+* Prepare dependencies
+    ```
+    brew install pugixml
+    brew install rapidjson
+    brew install taglib
+    ```
+
+* Download and build
+    ```
+    git clone https://github.com/smithjd15/playlist.git
+    mkdir -p playlist/build
+    cd playlist/build
+    cmake ..
+    make -j4
+    ```
+
+* Now, you will have `playlist` executable under `playlist/build`. Try `make install` or just invoke from where it is.
+
+
 ### Inspect
 #### Playlist can list all or certain targets or images, and provide an entry overview and summary.
 
